@@ -1,12 +1,12 @@
 import React from "react";
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 export default function InvitationsListModal({ invitations, testTitle, token, onClose }) {
   const sendReminder = async (invitationId) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
+        `${API_BASE_URL}/invitations/send-reminder/${invitationId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -15,6 +15,8 @@ export default function InvitationsListModal({ invitations, testTitle, token, on
       const data = await response.json();
       if (data.success) {
         alert("Reminder sent successfully!");
+      } else {
+        alert(data.message || "Failed to send reminder");
       }
     } catch (error) {
       console.error("Error sending reminder:", error);
@@ -31,9 +33,7 @@ export default function InvitationsListModal({ invitations, testTitle, token, on
     };
     return (
       <span
-        className={`px-2 py-1 text-xs rounded-full ${
-          styles[status] || "bg-gray-100 text-gray-800"
-        }`}
+        className={`px-2 py-1 text-xs rounded-full ${styles[status] || "bg-gray-100 text-gray-800"}`}
       >
         {status}
       </span>
@@ -61,9 +61,7 @@ export default function InvitationsListModal({ invitations, testTitle, token, on
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-medium">{inv.candidate_name}</p>
-                      <p className="text-sm text-gray-600">
-                        {inv.candidate_email}
-                      </p>
+                      <p className="text-sm text-gray-600">{inv.candidate_email}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         Invited: {new Date(inv.invited_at).toLocaleString()}
                       </p>
@@ -100,5 +98,3 @@ export default function InvitationsListModal({ invitations, testTitle, token, on
     </div>
   );
 }
-
-// File path: src/components/dashboard/InvitationsListModal.jsx

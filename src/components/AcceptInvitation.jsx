@@ -6,7 +6,8 @@ export default function InvitationAccept({ token, onNavigate, onLogin }) {
   const [invitation, setInvitation] = useState(null);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const API_BASE_URL = "http://localhost:5000";
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     // Check if user is logged in
@@ -19,7 +20,7 @@ export default function InvitationAccept({ token, onNavigate, onLogin }) {
   const acceptInvitation = async () => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/accept/${token}`
+        `${API_BASE_URL}/invitations/accept/${token}`
       );
       const data = await response.json();
 

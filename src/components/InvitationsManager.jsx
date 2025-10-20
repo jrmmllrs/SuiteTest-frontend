@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Mail, Send, Trash2, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Send,
+  Trash2,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
 
 // Simple API URL - Change this if your backend is on different port
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function InvitationsManager({ testId, token }) {
   const [invitations, setInvitations] = useState([]);
@@ -16,7 +25,7 @@ export default function InvitationsManager({ testId, token }) {
   const fetchInvitations = async () => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/test/${testId}/invitations`,
+        `${API_BASE_URL}/invitations/test/${testId}/invitations`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -34,8 +43,7 @@ export default function InvitationsManager({ testId, token }) {
 
   const sendReminder = async (invitationId) => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
+      const response =await fetch(`${API_BASE_URL}/invitations/send-reminder/${invitationId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -59,8 +67,7 @@ export default function InvitationsManager({ testId, token }) {
     }
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/invitations/invitation/${invitationId}`,
+      const response = await fetch(`${API_BASE_URL}/invitations/invitation/${invitationId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -239,7 +246,9 @@ export default function InvitationsManager({ testId, token }) {
               </strong>
             </span>
           </div>
-          <span>Total: <strong>{invitations.length}</strong></span>
+          <span>
+            Total: <strong>{invitations.length}</strong>
+          </span>
         </div>
       </div>
     </div>
