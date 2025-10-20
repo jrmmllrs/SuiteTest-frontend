@@ -1,6 +1,6 @@
 import React from "react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/";
 
 export default function InvitationsListModal({ invitations, testTitle, token, onClose }) {
   const sendReminder = async (invitationId) => {
