@@ -26,7 +26,7 @@ export default function InvitationsManager({ testId, token }) {
   const fetchInvitations = async () => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/test/${testId}/invitations`,
+        `${API_BASE_URL}/invitations/test/${testId}/invitations`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -49,7 +49,7 @@ export default function InvitationsManager({ testId, token }) {
   const sendReminder = async (invitationId) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
+        `${API_BASE_URL}/invitations/send-reminder/${invitationId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -75,7 +75,7 @@ export default function InvitationsManager({ testId, token }) {
     try {
       // FIXED: Added /api prefix
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/invitation/${invitationId}`,
+        `${API_BASE_URL}/invitations/invitation/${invitationId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },

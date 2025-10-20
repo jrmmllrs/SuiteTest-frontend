@@ -7,7 +7,7 @@ export default function InvitationsListModal({ invitations, testTitle, token, on
     try {
       // ✅ FIXED: Added /api prefix
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
+        `${API_BASE_URL}/invitations/send-reminder/${invitationId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
