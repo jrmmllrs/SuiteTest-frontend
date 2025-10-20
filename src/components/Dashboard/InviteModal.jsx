@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-// ✅ FIXED: Use environment variable
+// ✅ OPTION 1: Remove /api from URL (use this if your .env has the full path)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function InviteModal({ test, token, onClose }) {
@@ -48,24 +48,23 @@ export default function InviteModal({ test, token, onClose }) {
     setSending(true);
 
     try {
-      console.log("Sending to:", `${API_BASE_URL}/api/invitations/send-invitation`);
+      // ✅ FIXED: Removed duplicate /api
+      const url = `${API_BASE_URL}/invitations/send-invitation`;
+      console.log("Sending to:", url);
       console.log("Test ID:", test.id);
       console.log("Candidates:", validCandidates);
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/invitations/send-invitation`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            testId: test.id,
-            candidates: validCandidates,
-          }),
-        }
-      );
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          testId: test.id,
+          candidates: validCandidates,
+        }),
+      });
 
       const data = await response.json();
       console.log("Response:", data);
