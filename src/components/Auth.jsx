@@ -5,7 +5,7 @@ import { Mail, Lock, User, Briefcase, Building2 } from "lucide-react";
 // const API_BASE_URL = "http://localhost:5000/api";
 // Or if you have a constants file:
 // import { API_BASE_URL } from "../constants";
-const API_BASE_URL = "http://localhost:5000/api"; // Temporary for demo
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Auth({ onAuthSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
