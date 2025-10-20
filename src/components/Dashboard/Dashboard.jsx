@@ -5,7 +5,8 @@ import DashboardActions from "./DashboardActions";
 import TestCard from "./TestCard";
 import InviteModal from "./InviteModal";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 export default function Dashboard({ user, token, onLogout, onNavigate }) {
   const [tests, setTests] = useState([]);
@@ -32,9 +33,10 @@ export default function Dashboard({ user, token, onLogout, onNavigate }) {
   const fetchTests = async () => {
     try {
       if (user?.role === "candidate") {
-        const response = await fetch(`${API_BASE_URL}/api/tests/available`, {
+        const response = await fetch(`${API_BASE_URL}/tests/available`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const data = await response.json();
         if (data.success) {
           setTests(data.tests);
@@ -44,10 +46,10 @@ export default function Dashboard({ user, token, onLogout, onNavigate }) {
         }
       } else if (user?.role === "employer" || user?.role === "admin") {
         const [myTestsRes, availableTestsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/tests/my-tests`, {
+          fetch(`${API_BASE_URL}/tests/my-tests`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${API_BASE_URL}/api/tests/available`, {
+          fetch(`${API_BASE_URL}/tests/available`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
