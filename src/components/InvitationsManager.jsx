@@ -16,6 +16,7 @@ const API_BASE_URL =
 export default function InvitationsManager({ testId, token }) {
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchInvitations();
@@ -33,9 +34,13 @@ export default function InvitationsManager({ testId, token }) {
       const data = await response.json();
       if (data.success) {
         setInvitations(data.invitations);
+        setError(null);
+      } else {
+        setError(data.message);
       }
     } catch (err) {
       console.error("Error fetching invitations:", err);
+      setError("Failed to load invitations. Check your connection.");
     } finally {
       setLoading(false);
     }
@@ -43,7 +48,8 @@ export default function InvitationsManager({ testId, token }) {
 
   const sendReminder = async (invitationId) => {
     try {
-      const response =await fetch(`${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
+      const response = await fetch(
+        `${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -57,7 +63,7 @@ export default function InvitationsManager({ testId, token }) {
       }
     } catch (err) {
       console.error("Error sending reminder:", err);
-      alert("Failed to send reminder");
+      alert("Failed to send reminder. Check your connection.");
     }
   };
 
@@ -67,7 +73,9 @@ export default function InvitationsManager({ testId, token }) {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/invitations/invitation/${invitationId}`,
+      // FIXED: Added /api prefix
+      const response = await fetch(
+        `${API_BASE_URL}/api/invitations/invitation/${invitationId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -77,10 +85,12 @@ export default function InvitationsManager({ testId, token }) {
       if (data.success) {
         setInvitations(invitations.filter((inv) => inv.id !== invitationId));
         alert("Invitation cancelled");
+      } else {
+        alert("Failed to cancel invitation: " + data.message);
       }
     } catch (err) {
       console.error("Error deleting invitation:", err);
-      alert("Failed to cancel invitation");
+      alert("Failed to cancel invitation. Check your connection.");
     }
   };
 
@@ -119,6 +129,21 @@ export default function InvitationsManager({ testId, token }) {
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
         <p className="mt-2 text-gray-600">Loading invitations...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <AlertCircle className="mx-auto text-red-500 mb-2" size={32} />
+        <p className="text-red-800">{error}</p>
+        <button
+          onClick={fetchInvitations}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Retry
+        </button>
       </div>
     );
   }
