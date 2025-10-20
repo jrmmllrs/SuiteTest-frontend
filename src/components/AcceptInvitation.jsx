@@ -20,7 +20,7 @@ export default function InvitationAccept({ token, onNavigate, onLogin }) {
   const acceptInvitation = async () => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/invitations/accept/${token}`
+       `${API_BASE_URL}/api/invitations/accept/${token}`
       );
       const data = await response.json();
 

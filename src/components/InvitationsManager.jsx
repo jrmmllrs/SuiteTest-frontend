@@ -25,7 +25,7 @@ export default function InvitationsManager({ testId, token }) {
   const fetchInvitations = async () => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/invitations/test/${testId}/invitations`,
+        `${API_BASE_URL}/api/invitations/test/${testId}/invitations`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -43,7 +43,7 @@ export default function InvitationsManager({ testId, token }) {
 
   const sendReminder = async (invitationId) => {
     try {
-      const response =await fetch(`${API_BASE_URL}/invitations/send-reminder/${invitationId}`,
+      const response =await fetch(`${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
