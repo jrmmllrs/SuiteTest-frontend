@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { FileText, ExternalLink } from "lucide-react";
 
 export default function AnswerReview({ testId, candidateId, token, onBack }) {
-  const API_BASE_URL = "http://localhost:5000/api";
-  
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
   const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -90,13 +91,17 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
 
   const { test, result, questions } = review;
   const percentage = Math.round((result.score / result.total_questions) * 100);
-  
+
   // NEW: Check if this is a PDF-based test
-  const isPdfTest = test.test_type === 'pdf_based' && test.google_drive_id;
+  const isPdfTest = test.test_type === "pdf_based" && test.google_drive_id;
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className={`mx-auto py-8 px-4 ${isPdfTest && showPdf ? 'max-w-7xl' : 'max-w-5xl'}`}>
+      <div
+        className={`mx-auto py-8 px-4 ${
+          isPdfTest && showPdf ? "max-w-7xl" : "max-w-5xl"
+        }`}
+      >
         {/* Header */}
         <div className="mb-6">
           <button
@@ -110,7 +115,7 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
               <h1 className="text-3xl font-bold text-gray-800">{test.title}</h1>
               <p className="text-gray-600 mt-2">Answer Review</p>
             </div>
-            
+
             {/* NEW: PDF Badge and Toggle */}
             {isPdfTest && (
               <div className="flex items-center gap-3">
@@ -122,7 +127,7 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
                   onClick={() => setShowPdf(!showPdf)}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                 >
-                  {showPdf ? 'Hide PDF' : 'Show PDF'}
+                  {showPdf ? "Hide PDF" : "Show PDF"}
                 </button>
               </div>
             )}
@@ -130,7 +135,7 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
         </div>
 
         {/* NEW: Main Layout - Side by side for PDF tests */}
-        <div className={isPdfTest && showPdf ? 'grid grid-cols-2 gap-6' : ''}>
+        <div className={isPdfTest && showPdf ? "grid grid-cols-2 gap-6" : ""}>
           {/* NEW: PDF Viewer Section (left side) */}
           {isPdfTest && showPdf && (
             <div className="sticky top-8 h-[calc(100vh-8rem)]">
@@ -169,7 +174,9 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">Total Score</p>
-                  <p className="text-3xl font-bold text-blue-600">{percentage}%</p>
+                  <p className="text-3xl font-bold text-blue-600">
+                    {percentage}%
+                  </p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">Correct</p>
@@ -199,7 +206,9 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
                 const userAnswer = q.user_answer;
                 const correctAnswer = q.correct_answer;
 
-                const questionTypeDetails = getQuestionTypeDetails(q.question_type);
+                const questionTypeDetails = getQuestionTypeDetails(
+                  q.question_type
+                );
                 const requiresOptions =
                   questionTypeDetails?.requires_options || false;
                 const hasOptions = q.options && q.options.length > 0;
@@ -220,7 +229,9 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
                               Question {index + 1}
                             </span>
                             <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                              {getQuestionTypeName(q.question_type).toUpperCase()}
+                              {getQuestionTypeName(
+                                q.question_type
+                              ).toUpperCase()}
                             </span>
                             {isCorrect ? (
                               <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
@@ -268,7 +279,9 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
-                                    <span className={`font-semibold ${textColor}`}>
+                                    <span
+                                      className={`font-semibold ${textColor}`}
+                                    >
                                       {String.fromCharCode(65 + optIndex)}.
                                     </span>
                                     <span className={textColor}>{option}</span>
@@ -317,7 +330,9 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
                               </p>
                               <div
                                 className={`bg-white rounded p-3 text-sm text-gray-800 whitespace-pre-wrap break-words max-h-48 overflow-y-auto ${
-                                  q.question_type === "coding" ? "font-mono" : ""
+                                  q.question_type === "coding"
+                                    ? "font-mono"
+                                    : ""
                                 }`}
                               >
                                 {correctAnswer}
@@ -333,7 +348,9 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
                           <p className="text-sm font-semibold text-indigo-900 mb-1">
                             💡 Explanation
                           </p>
-                          <p className="text-sm text-indigo-800">{q.explanation}</p>
+                          <p className="text-sm text-indigo-800">
+                            {q.explanation}
+                          </p>
                         </div>
                       )}
 

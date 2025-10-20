@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Lock, User, Briefcase, Building2 } from "lucide-react";
 
-// Use your API_BASE_URL from constants
-// const API_BASE_URL = "http://localhost:5000/api";
-// Or if you have a constants file:
-// import { API_BASE_URL } from "../constants";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
 
 export default function Auth({ onAuthSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -151,7 +148,7 @@ export default function Auth({ onAuthSuccess }) {
         <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-        
+
         {/* Geometric Patterns */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-1/4 left-1/4 w-32 h-32 border-2 border-cyan-500 rounded-lg transform rotate-45 animate-spin-slow"></div>
@@ -166,10 +163,16 @@ export default function Auth({ onAuthSuccess }) {
           <div className="px-6 py-8 border-b border-gray-100 bg-gradient-to-r from-cyan-50/50 to-blue-50/50">
             <div className="mx-auto mb-4 text-center animate-fade-in-down">
               <h1 className="text-5xl font-bold tracking-tight">
-                <span className="text-cyan-600 inline-block animate-float" style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                <span
+                  className="text-cyan-600 inline-block animate-float"
+                  style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}
+                >
                   Suite
                 </span>
-                <span className="text-gray-900 inline-block animate-float animation-delay-200" style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}>
+                <span
+                  className="text-gray-900 inline-block animate-float animation-delay-200"
+                  style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}
+                >
                   Test
                 </span>
               </h1>
@@ -230,8 +233,18 @@ export default function Auth({ onAuthSuccess }) {
                         <option value="admin">admin</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400 transition-colors group-focus-within:text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        <svg
+                          className="w-5 h-5 text-gray-400 transition-colors group-focus-within:text-cyan-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </div>
                     </div>
@@ -253,7 +266,9 @@ export default function Auth({ onAuthSuccess }) {
                           className="w-full pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:border-cyan-300"
                         >
                           <option value="">
-                            {loadingDepartments ? "Loading departments..." : "Select your department"}
+                            {loadingDepartments
+                              ? "Loading departments..."
+                              : "Select your department"}
                           </option>
                           {departments.map((dept) => (
                             <option key={dept.id} value={dept.id}>
@@ -262,8 +277,18 @@ export default function Auth({ onAuthSuccess }) {
                           ))}
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                          <svg className="w-5 h-5 text-gray-400 transition-colors group-focus-within:text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <svg
+                            className="w-5 h-5 text-gray-400 transition-colors group-focus-within:text-cyan-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
                           </svg>
                         </div>
                       </div>
@@ -275,7 +300,13 @@ export default function Auth({ onAuthSuccess }) {
                 </>
               )}
 
-              <div className={!isLogin ? "animate-slide-in-left animation-delay-300" : "animate-fade-in"}>
+              <div
+                className={
+                  !isLogin
+                    ? "animate-slide-in-left animation-delay-300"
+                    : "animate-fade-in"
+                }
+              >
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
@@ -293,7 +324,13 @@ export default function Auth({ onAuthSuccess }) {
                 </div>
               </div>
 
-              <div className={!isLogin ? "animate-slide-in-left animation-delay-400" : "animate-fade-in animation-delay-100"}>
+              <div
+                className={
+                  !isLogin
+                    ? "animate-slide-in-left animation-delay-400"
+                    : "animate-fade-in animation-delay-100"
+                }
+              >
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Password
                 </label>
@@ -324,13 +361,33 @@ export default function Auth({ onAuthSuccess }) {
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Loading...
                   </span>
-                ) : isLogin ? "Sign in" : "Create account"}
+                ) : isLogin ? (
+                  "Sign in"
+                ) : (
+                  "Create account"
+                )}
               </button>
             </form>
 
