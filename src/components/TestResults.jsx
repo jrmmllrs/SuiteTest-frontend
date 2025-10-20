@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { API_BASE_URL } from "../constants/views";
 import LoadingScreen from "./LoadingScreen";
 
 export default function TestResults({ testId, token, onBack, onNavigate }) {
@@ -7,6 +6,9 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [testInfo, setTestInfo] = useState(null);
   const [error, setError] = useState(null);
+
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
   useEffect(() => {
     fetchResults();
@@ -16,41 +18,34 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(
-        `${API_BASE_URL}/api/tests/${testId}/results`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/tests/${testId}/results`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await response.json();
-      
+
       if (data.success) {
         setResults(data.results || []);
         setTestInfo(data.test);
       } else {
         setError("Failed to load results");
       }
-    } catch (error) {
-      console.error("Error fetching results:", error);
+    } catch (err) {
+      console.error("Error fetching results:", err);
       setError("Error loading results");
     } finally {
       setLoading(false);
     }
   };
 
-  const calculatePercentage = (score, total) => {
-    return Math.round((score / total) * 100);
-  };
+  const calculatePercentage = (score, total) =>
+    Math.round((score / total) * 100);
 
-  const formatDate = (dateString) => {
-    return dateString ? new Date(dateString).toLocaleString() : "N/A";
-  };
+  const formatDate = (dateString) =>
+    dateString ? new Date(dateString).toLocaleString() : "N/A";
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen />;
 
-  if (error) {
+  if (error)
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow p-6 max-w-md">
@@ -64,7 +59,6 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
         </div>
       </div>
     );
-  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -134,7 +128,11 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {calculatePercentage(result.score, result.total_questions)}%
+                          {calculatePercentage(
+                            result.score,
+                            result.total_questions
+                          )}
+                          %
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -153,7 +151,13 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
-                          onClick={() => onNavigate("answer-review", testId, result.candidate_id)}
+                          onClick={() =>
+                            onNavigate(
+                              "answer-review",
+                              testId,
+                              result.candidate_id
+                            )
+                          }
                           className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
                           View Review
