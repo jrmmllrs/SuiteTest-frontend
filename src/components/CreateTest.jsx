@@ -65,7 +65,7 @@ export default function CreateTest({ user, token, onBack }) {
       }
 
       // Fetch departments
-      const deptResponse = await fetch(`${API_BASE_URL}/users/departments`);
+      const deptResponse = await fetch(`${API_BASE_URL}/auth/departments`);
       const deptData = await deptResponse.json();
       if (deptData.success) {
         setDepartments(deptData.departments);
