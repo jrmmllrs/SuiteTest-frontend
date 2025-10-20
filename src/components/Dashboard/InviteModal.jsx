@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-const API_BASE_URL = "http://localhost:5000";
+// ✅ FIXED: Use environment variable
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function InviteModal({ test, token, onClose }) {
   const [candidates, setCandidates] = useState([{ name: "", email: "" }]);
@@ -47,6 +48,10 @@ export default function InviteModal({ test, token, onClose }) {
     setSending(true);
 
     try {
+      console.log("Sending to:", `${API_BASE_URL}/api/invitations/send-invitation`);
+      console.log("Test ID:", test.id);
+      console.log("Candidates:", validCandidates);
+
       const response = await fetch(
         `${API_BASE_URL}/api/invitations/send-invitation`,
         {
@@ -63,6 +68,8 @@ export default function InviteModal({ test, token, onClose }) {
       );
 
       const data = await response.json();
+      console.log("Response:", data);
+
       if (data.success) {
         setResults(data.results);
       } else {
@@ -70,7 +77,7 @@ export default function InviteModal({ test, token, onClose }) {
       }
     } catch (error) {
       console.error("Error sending invitations:", error);
-      alert("Failed to send invitations. Please try again.");
+      alert("Failed to send invitations. Check console for details.");
     } finally {
       setSending(false);
     }
@@ -191,5 +198,3 @@ export default function InviteModal({ test, token, onClose }) {
     </div>
   );
 }
-
-// File path: src/components/dashboard/InviteModal.jsx
