@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
 
+// ✅ FIXED: Move API_BASE_URL outside component for consistency
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
 export default function InvitationAccept({ token, onNavigate, onLogin }) {
   const [loading, setLoading] = useState(true);
   const [invitation, setInvitation] = useState(null);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     // Check if user is logged in
@@ -15,12 +16,14 @@ export default function InvitationAccept({ token, onNavigate, onLogin }) {
     setIsLoggedIn(!!authToken);
 
     acceptInvitation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const acceptInvitation = async () => {
     try {
+      // ✅ FIXED: Removed duplicate /api
       const response = await fetch(
-       `${API_BASE_URL}/api/invitations/accept/${token}`
+        `${API_BASE_URL}/invitations/accept/${token}`
       );
       const data = await response.json();
 
