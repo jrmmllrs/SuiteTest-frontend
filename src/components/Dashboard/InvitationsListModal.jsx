@@ -5,8 +5,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000
 export default function InvitationsListModal({ invitations, testTitle, token, onClose }) {
   const sendReminder = async (invitationId) => {
     try {
+      // ✅ FIXED: Added /api prefix
       const response = await fetch(
-        `${API_BASE_URL}/invitations/send-reminder/${invitationId}`,
+        `${API_BASE_URL}/api/invitations/send-reminder/${invitationId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
