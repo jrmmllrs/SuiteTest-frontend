@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import InvitationsListModal from "./InvitationsListModal";
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function TestCard({ test, user, userRole, onNavigate, onInvite, token }) {
   const [invitations, setInvitations] = useState([]);
@@ -29,7 +29,7 @@ export default function TestCard({ test, user, userRole, onNavigate, onInvite, t
   const fetchInvitationCount = async () => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/test/${test.id}/invitations`,
+        `${API_BASE_URL}/invitations/test/${test.id}/invitations`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -48,7 +48,7 @@ export default function TestCard({ test, user, userRole, onNavigate, onInvite, t
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/test/${test.id}/invitations`,
+        `${API_BASE_URL}/invitations/test/${test.id}/invitations`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
