@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import TestCard from "./TestCard";
 import InviteModal from "./InviteModal";
+import DeleteTestModal from "./DeleteTestModal";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
@@ -195,7 +196,9 @@ export default function Dashboard({ user, token, onLogout, onNavigate }) {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTestForInvite, setSelectedTestForInvite] = useState(null);
+  const [selectedTestForDelete, setSelectedTestForDelete] = useState(null);
   const [userDepartment, setUserDepartment] = useState(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -282,6 +285,21 @@ export default function Dashboard({ user, token, onLogout, onNavigate }) {
   const closeInviteModal = () => {
     setShowInviteModal(false);
     setSelectedTestForInvite(null);
+  };
+
+  const openDeleteModal = (test) => {
+    setSelectedTestForDelete(test);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setSelectedTestForDelete(null);
+  };
+
+  const handleTestDeleted = (testId) => {
+    setTests((prevTests) => prevTests.filter((test) => test.id !== testId));
+    closeDeleteModal();
   };
 
   const filteredTests = tests.filter((test) => {
@@ -528,6 +546,7 @@ export default function Dashboard({ user, token, onLogout, onNavigate }) {
                       userRole={user?.role}
                       onNavigate={onNavigate}
                       onInvite={openInviteModal}
+                      onDelete={openDeleteModal}
                       token={token}
                     />
                   ))}
@@ -545,6 +564,17 @@ export default function Dashboard({ user, token, onLogout, onNavigate }) {
           onClose={closeInviteModal}
         />
       )}
+
+      {showDeleteModal && selectedTestForDelete && (
+        <DeleteTestModal
+          test={selectedTestForDelete}
+          token={token}
+          onClose={closeDeleteModal}
+          onDeleted={handleTestDeleted}
+        />
+      )}
     </div>
   );
 }
+
+// File path: src/components/dashboard/Dashboard.jsx

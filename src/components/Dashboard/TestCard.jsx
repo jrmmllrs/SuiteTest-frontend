@@ -7,14 +7,18 @@ import {
   Eye,
   FileText,
   Building,
+  Trash2,
+  Edit,
+  MoreVertical,
 } from "lucide-react";
 import InvitationsListModal from "./InvitationsListModal";
-import { API_BASE_URL } from "../../constants"; // ✅ Add this import
+import { API_BASE_URL } from "../../constants";
 
-export default function TestCard({ test, user, userRole, onNavigate, onInvite, token }) {
+export default function TestCard({ test, user, userRole, onNavigate, onInvite, onDelete, token }) {
   const [invitations, setInvitations] = useState([]);
   const [showInvitations, setShowInvitations] = useState(false);
   const [invitationCount, setInvitationCount] = useState(0);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     if (
@@ -24,6 +28,17 @@ export default function TestCard({ test, user, userRole, onNavigate, onInvite, t
       fetchInvitationCount();
     }
   }, [test.id, userRole, test.created_by_me]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showMenu && !e.target.closest('.menu-container')) {
+        setShowMenu(false);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showMenu]);
 
   const fetchInvitationCount = async () => {
     try {
@@ -76,27 +91,80 @@ export default function TestCard({ test, user, userRole, onNavigate, onInvite, t
     }
   };
 
+  const handleMenuAction = (action, e) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    
+    switch (action) {
+      case 'edit':
+        handleNavigate('edit-test', test.id);
+        break;
+      case 'delete':
+        onDelete(test);
+        break;
+      default:
+        break;
+    }
+  };
+
   const canTakeTest = test.is_available_to_take && !test.created_by_me;
+  const canManageTest = test.created_by_me && (userRole === 'employer' || userRole === 'admin');
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white relative">
       <div className="flex items-start justify-between mb-2">
-        <h4 className="font-semibold text-gray-900 text-lg">{test.title}</h4>
-        <div className="flex flex-col gap-1">
-          {test.test_type === "pdf_based" && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-              PDF Test
-            </span>
-          )}
-          {test.target_role === "employer" && (
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-              For Staff
-            </span>
-          )}
-          {canTakeTest && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-              Available
-            </span>
+        <h4 className="font-semibold text-gray-900 text-lg flex-1 pr-2">{test.title}</h4>
+        <div className="flex items-start gap-2">
+          <div className="flex flex-col gap-1">
+            {test.test_type === "pdf_based" && (
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                PDF Test
+              </span>
+            )}
+            {test.target_role === "employer" && (
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                For Staff
+              </span>
+            )}
+            {canTakeTest && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                Available
+              </span>
+            )}
+          </div>
+          
+          {/* Actions Menu for Test Creators */}
+          {canManageTest && (
+            <div className="menu-container relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
+              >
+                <MoreVertical size={18} />
+              </button>
+              
+              {showMenu && (
+                <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                  <button
+                    onClick={(e) => handleMenuAction('edit', e)}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <Edit size={16} />
+                    Edit Test
+                  </button>
+                  <button
+                    onClick={(e) => handleMenuAction('delete', e)}
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  >
+                    <Trash2 size={16} />
+                    Delete Test
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -256,5 +324,3 @@ export default function TestCard({ test, user, userRole, onNavigate, onInvite, t
     </div>
   );
 }
-
-// File path: src/components/dashboard/TestCard.jsx
