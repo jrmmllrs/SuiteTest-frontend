@@ -43,6 +43,24 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
   const formatDate = (dateString) =>
     dateString ? new Date(dateString).toLocaleString() : "N/A";
 
+  const calculateDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return "N/A";
+    
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffMs = end - start;
+    
+    if (diffMs < 0) return "N/A";
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffSecs = Math.floor((diffMs % 60000) / 1000);
+    
+    if (diffMins === 0) {
+      return `${diffSecs}s`;
+    }
+    return `${diffMins}m ${diffSecs}s`;
+  };
+
   if (loading) return <LoadingScreen />;
 
   if (error)
@@ -97,10 +115,13 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                       Percentage
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                      Duration
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Submitted
+                      Started At
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Finished At
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -125,9 +146,12 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                         <div className="text-sm text-gray-900">
                           {result.score} / {result.total_questions}
                         </div>
+                        <div className="text-xs text-gray-500">
+                          {result.remarks}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm font-semibold text-gray-900">
                           {calculatePercentage(
                             result.score,
                             result.total_questions
@@ -136,18 +160,15 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            result.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {result.status}
-                        </span>
+                        <div className="text-sm text-gray-900">
+                          {calculateDuration(result.taken_at, result.finished_at)}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(result.taken_at || result.submitted_at)}
+                        {formatDate(result.taken_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(result.finished_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
