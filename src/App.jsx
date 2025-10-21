@@ -13,6 +13,7 @@ import ViewTest from "./components/ViewTest";
 import TestResults from "./components/TestResults";
 import UserManagement from "./components/UserManagement";
 import { VIEWS } from "./constants/views";
+import { API_BASE_URL } from "./constants";
 import { useAuth } from "./hooks/useAuth";
 import { useInvitation } from "./hooks/useInvitation";
 import LoadingScreen from "./components/LoadingScreen";
@@ -23,6 +24,7 @@ export default function App() {
   const [selectedTestId, setSelectedTestId] = useState(null);
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [checkingActiveTest, setCheckingActiveTest] = useState(false);
 
   const { user, token, login, logout, restoreSession } = useAuth();
   const { invitationToken, checkForInvitation, clearInvitation } =
@@ -31,6 +33,13 @@ export default function App() {
   useEffect(() => {
     initializeApp();
   }, []);
+
+  // Check for active test when user is authenticated
+  useEffect(() => {
+    if (token && user && currentView === VIEWS.DASHBOARD) {
+      checkForActiveTest();
+    }
+  }, [token, user]);
 
   const initializeApp = () => {
     const hasSession = restoreSession();
@@ -44,6 +53,44 @@ export default function App() {
     } else {
       setCurrentView(VIEWS.AUTH);
     }
+  };
+
+  const checkForActiveTest = async () => {
+    if (checkingActiveTest) return; // Prevent duplicate checks
+    
+    setCheckingActiveTest(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/tests/active-test`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.activeTest) {
+        console.log('Found active test, redirecting...', data.activeTest);
+        
+        // Automatically navigate to the active test
+        setSelectedTestId(data.activeTest.test_id);
+        setCurrentView(VIEWS.TAKE_TEST);
+        setActiveTab("tests");
+        
+        // Optional: Show a notification
+        showNotification('info', 'Resuming your active test...');
+      }
+    } catch (error) {
+      console.error('Error checking for active test:', error);
+    } finally {
+      setCheckingActiveTest(false);
+    }
+  };
+
+  const showNotification = (type, message) => {
+    // You can implement a toast notification here
+    // For now, just console log
+    console.log(`[${type.toUpperCase()}] ${message}`);
   };
 
   const handleAuthSuccess = (userData, authToken) => {
@@ -207,6 +254,18 @@ export default function App() {
 
   if (currentView === VIEWS.LOADING) {
     return <LoadingScreen />;
+  }
+
+  // Show loading overlay while checking for active test
+  if (checkingActiveTest) {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Checking for active tests...</p>
+        </div>
+      </div>
+    );
   }
 
   console.log("App render:", { currentView, activeTab, user: user?.role });
