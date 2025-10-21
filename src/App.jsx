@@ -16,11 +16,13 @@ import { VIEWS } from "./constants/views";
 import { useAuth } from "./hooks/useAuth";
 import { useInvitation } from "./hooks/useInvitation";
 import LoadingScreen from "./components/LoadingScreen";
+import InvitationsManagerView from "./components/InvitationManagerView";
 
 export default function App() {
   const [currentView, setCurrentView] = useState(VIEWS.LOADING);
   const [selectedTestId, setSelectedTestId] = useState(null);
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const { user, token, login, logout, restoreSession } = useAuth();
   const { invitationToken, checkForInvitation, clearInvitation } =
@@ -30,17 +32,6 @@ export default function App() {
     initializeApp();
   }, []);
 
-  // Debug: Log state changes
-  useEffect(() => {
-    console.log("=== STATE CHANGED ===");
-    console.log("currentView:", currentView);
-    console.log("selectedTestId:", selectedTestId);
-    console.log("selectedCandidateId:", selectedCandidateId);
-    console.log("VIEWS.VIEW_TEST:", VIEWS.VIEW_TEST);
-    console.log("Is VIEW_TEST?", currentView === VIEWS.VIEW_TEST);
-    console.log("===================");
-  }, [currentView, selectedTestId, selectedCandidateId]);
-
   const initializeApp = () => {
     const hasSession = restoreSession();
     const inviteToken = checkForInvitation();
@@ -49,6 +40,7 @@ export default function App() {
       setCurrentView(VIEWS.INVITATION_ACCEPT);
     } else if (hasSession) {
       setCurrentView(VIEWS.DASHBOARD);
+      setActiveTab("dashboard");
     } else {
       setCurrentView(VIEWS.AUTH);
     }
@@ -61,6 +53,7 @@ export default function App() {
       setCurrentView(VIEWS.INVITATION_ACCEPT);
     } else {
       setCurrentView(VIEWS.DASHBOARD);
+      setActiveTab("dashboard");
     }
   };
 
@@ -70,34 +63,145 @@ export default function App() {
     setSelectedTestId(null);
     setSelectedCandidateId(null);
     setCurrentView(VIEWS.AUTH);
+    setActiveTab("dashboard");
   };
 
   const handleNavigate = (view, testId = null, candidateId = null) => {
-    console.log("=== HANDLE NAVIGATE CALLED ===");
-    console.log("Requested view:", view);
-    console.log("Test ID:", testId);
-    console.log("Candidate ID:", candidateId);
-    console.log("============================");
-
-    setCurrentView(view);
+    console.log("handleNavigate called with:", { view, testId, candidateId });
+    
     setSelectedTestId(testId);
     setSelectedCandidateId(candidateId);
 
-    if (view === VIEWS.INVITATION_ACCEPT && invitationToken) {
-      window.location.hash = `/invitation/${invitationToken}`;
-    } else if (view === VIEWS.AUTH) {
-      window.location.hash = "";
+    // ✅ FIXED: Handle string-based navigation from sidebar
+    // Map sidebar navigation IDs to appropriate views and tabs
+    switch(view) {
+      case "dashboard":
+        setCurrentView(VIEWS.DASHBOARD);
+        setActiveTab("dashboard");
+        break;
+      
+      case "tests":
+        setCurrentView(VIEWS.DASHBOARD);
+        setActiveTab("tests");
+        break;
+      
+      case "invitations":
+        // Keep user in dashboard view but change the active tab
+        setCurrentView(VIEWS.DASHBOARD);
+        setActiveTab("invitations");
+        break;
+      
+      case "user-management":
+        setCurrentView(VIEWS.USER_MANAGEMENT);
+        setActiveTab("user-management");
+        break;
+      
+      case "admin-results":
+        setCurrentView(VIEWS.ADMIN_RESULTS);
+        setActiveTab("admin-results");
+        break;
+      
+      case "question-type-manager":
+        setCurrentView(VIEWS.QUESTION_TYPE_MANAGER);
+        setActiveTab("question-type-manager");
+        break;
+      
+      case "settings":
+        // You might want to add a settings view later
+        setCurrentView(VIEWS.DASHBOARD);
+        setActiveTab("settings");
+        break;
+      
+      // Handle VIEWS constants (for programmatic navigation)
+      case VIEWS.DASHBOARD:
+        setCurrentView(VIEWS.DASHBOARD);
+        setActiveTab("dashboard");
+        break;
+      
+      case VIEWS.CREATE_TEST:
+        setCurrentView(VIEWS.CREATE_TEST);
+        setActiveTab("tests");
+        break;
+      
+      case VIEWS.EDIT_TEST:
+        setCurrentView(VIEWS.EDIT_TEST);
+        setActiveTab("tests");
+        break;
+      
+      case VIEWS.VIEW_TEST:
+        setCurrentView(VIEWS.VIEW_TEST);
+        setActiveTab("tests");
+        break;
+      
+      case VIEWS.TEST_RESULTS:
+        setCurrentView(VIEWS.TEST_RESULTS);
+        setActiveTab("tests");
+        break;
+      
+      case VIEWS.TAKE_TEST:
+        setCurrentView(VIEWS.TAKE_TEST);
+        setActiveTab("tests");
+        break;
+      
+      case VIEWS.USER_MANAGEMENT:
+        setCurrentView(VIEWS.USER_MANAGEMENT);
+        setActiveTab("user-management");
+        break;
+      
+      case VIEWS.ADMIN_RESULTS:
+        setCurrentView(VIEWS.ADMIN_RESULTS);
+        setActiveTab("admin-results");
+        break;
+      
+      case VIEWS.QUESTION_TYPE_MANAGER:
+        setCurrentView(VIEWS.QUESTION_TYPE_MANAGER);
+        setActiveTab("question-type-manager");
+        break;
+      
+      case VIEWS.ANSWER_REVIEW:
+        setCurrentView(VIEWS.ANSWER_REVIEW);
+        setActiveTab("admin-results");
+        break;
+      
+      case VIEWS.PROCTORING_EVENTS:
+        setCurrentView(VIEWS.PROCTORING_EVENTS);
+        setActiveTab("admin-results");
+        break;
+      
+      case VIEWS.INVITATIONS_MANAGER:
+        setCurrentView(VIEWS.INVITATIONS_MANAGER);
+        setActiveTab("tests");
+        break;
+      
+      case VIEWS.INVITATION_ACCEPT:
+        setCurrentView(VIEWS.INVITATION_ACCEPT);
+        if (invitationToken) {
+          window.location.hash = `/invitation/${invitationToken}`;
+        }
+        break;
+      
+      case VIEWS.AUTH:
+        setCurrentView(VIEWS.AUTH);
+        setActiveTab("dashboard");
+        window.location.hash = "";
+        break;
+      
+      default:
+        console.warn("Unknown navigation view:", view);
+        setCurrentView(VIEWS.DASHBOARD);
+        setActiveTab("dashboard");
     }
   };
 
   const handleEditTest = (testId) => {
-    console.log("Edit test clicked:", testId);
     setSelectedTestId(testId);
     setCurrentView(VIEWS.EDIT_TEST);
+    setActiveTab("tests");
   };
 
   const showLogin = () => {
     setCurrentView(VIEWS.AUTH);
+    setActiveTab("dashboard");
     window.location.hash = "";
   };
 
@@ -105,154 +209,169 @@ export default function App() {
     return <LoadingScreen />;
   }
 
-  // Debug: Log before rendering
-  console.log("About to render. CurrentView:", currentView);
+  console.log("App render:", { currentView, activeTab, user: user?.role });
 
   return (
     <>
-      {currentView === VIEWS.AUTH && (
-        <>
-          {console.log("Rendering AUTH")}
-          <Auth onAuthSuccess={handleAuthSuccess} />
-        </>
-      )}
+      {currentView === VIEWS.AUTH && <Auth onAuthSuccess={handleAuthSuccess} />}
 
       {currentView === VIEWS.INVITATION_ACCEPT && invitationToken && (
-        <>
-          {console.log("Rendering INVITATION_ACCEPT")}
-          <InvitationAccept
-            token={invitationToken}
-            onNavigate={handleNavigate}
-            onLogin={showLogin}
-          />
-        </>
+        <InvitationAccept
+          token={invitationToken}
+          onNavigate={handleNavigate}
+          onLogin={showLogin}
+        />
       )}
 
       {currentView === VIEWS.DASHBOARD && (
-        <>
-          {console.log("Rendering DASHBOARD")}
-          <Dashboard
-            user={user}
-            token={token}
-            onLogout={handleLogout}
-            onNavigate={handleNavigate}
-          />
-        </>
+        <Dashboard
+          user={user}
+          token={token}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.CREATE_TEST && (
-        <>
-          {console.log("Rendering CREATE_TEST")}
-          <CreateTest
-            user={user}
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-          />
-        </>
+        <CreateTest
+          user={user}
+          token={token}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.EDIT_TEST && (
-        <>
-          {console.log("Rendering EDIT_TEST")}
-          <EditTest
-            testId={selectedTestId}
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-          />
-        </>
+        <EditTest
+          testId={selectedTestId}
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.ADMIN_RESULTS && (
-        <>
-          {console.log("Rendering ADMIN_RESULTS")}
-          <AdminResults
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-            onNavigate={handleNavigate}
-          />
-        </>
+        <AdminResults
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.TAKE_TEST && (
-        <>
-          {console.log("Rendering TAKE_TEST")}
-          <TakeTest
-            user={user}
-            token={token}
-            testId={selectedTestId}
-            invitationToken={invitationToken}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-            onNavigate={handleNavigate}
-          />
-        </>
+        <TakeTest
+          user={user}
+          token={token}
+          testId={selectedTestId}
+          invitationToken={invitationToken}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onNavigate={handleNavigate}
+        />
       )}
 
       {currentView === VIEWS.VIEW_TEST && (
-        <>
-          {console.log("Rendering VIEW_TEST with testId:", selectedTestId)}
-          <ViewTest
-            testId={selectedTestId}
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-            onEdit={handleEditTest}
-          />
-        </>
+        <ViewTest
+          testId={selectedTestId}
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onEdit={handleEditTest}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.TEST_RESULTS && (
-        <>
-          {console.log("Rendering TEST_RESULTS")}
-          <TestResults
-            testId={selectedTestId}
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-            onNavigate={handleNavigate}
-          />
-        </>
+        <TestResults
+          testId={selectedTestId}
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.ANSWER_REVIEW && (
-        <>
-          {console.log("Rendering ANSWER_REVIEW")}
-          <AnswerReview
-            testId={selectedTestId}
-            candidateId={selectedCandidateId}
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-          />
-        </>
+        <AnswerReview
+          testId={selectedTestId}
+          candidateId={selectedCandidateId}
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.PROCTORING_EVENTS && (
-        <>
-          {console.log("Rendering PROCTORING_EVENTS")}
-          <ProctoringEvents
-            testId={selectedTestId}
-            candidateId={selectedCandidateId}
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-          />
-        </>
+        <ProctoringEvents
+          testId={selectedTestId}
+          candidateId={selectedCandidateId}
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.QUESTION_TYPE_MANAGER && (
-        <>
-          {console.log("Rendering QUESTION_TYPE_MANAGER")}
-          <QuestionTypeManager
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-          />
-        </>
+        <QuestionTypeManager
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {currentView === VIEWS.USER_MANAGEMENT && (
-        <>
-          {console.log("Rendering USER_MANAGEMENT")}
-          <UserManagement
-            token={token}
-            onBack={() => handleNavigate(VIEWS.DASHBOARD)}
-          />
-        </>
+        <UserManagement
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      )}
+      
+      {currentView === VIEWS.INVITATIONS_MANAGER && (
+        <InvitationsManagerView
+          testId={selectedTestId}
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
     </>
   );

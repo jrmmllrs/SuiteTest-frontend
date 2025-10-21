@@ -13,6 +13,7 @@ export const VIEWS = {
   INVITATION_ACCEPT: "invitation-accept",
   QUESTION_TYPE_MANAGER: "question-type-manager",
   USER_MANAGEMENT: "user-management",
+  INVITATIONS_MANAGER: 'invitations-manager',
 };
 
 // ⚠️ IMPORTANT: Your backend uses /api prefix for ALL routes

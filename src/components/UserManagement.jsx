@@ -1,3 +1,4 @@
+// File: src/components/UserManagement.jsx
 import React, { useState, useEffect } from "react";
 import {
   X,
@@ -9,9 +10,11 @@ import {
   Mail,
   Shield,
   Building,
+  Filter,
 } from "lucide-react";
 
-export default function UserManagement({ token, onBack }) {
+// UserManagement Content Component (without header/sidebar)
+function UserManagementContent({ token }) {
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,14 +42,12 @@ export default function UserManagement({ token, onBack }) {
 
   const fetchData = async () => {
     try {
-      // Fetch departments
       const deptResponse = await fetch(`${API_BASE_URL}/users/departments`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const deptData = await deptResponse.json();
       if (deptData.success) setDepartments(deptData.departments);
 
-      // Fetch users
       const usersResponse = await fetch(`${API_BASE_URL}/users/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -210,195 +211,227 @@ export default function UserManagement({ token, onBack }) {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">Loading users...</div>
+      <div className="flex items-center justify-center py-16">
+        <div className="inline-block w-12 h-12 border-4 border-[#0698b2] border-t-transparent rounded-full animate-spin mb-4" />
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
+    <>
+      {/* Message Alert */}
+      {message.text && (
+        <div
+          className={`mb-6 p-4 rounded-lg border ${
+            message.type === "success"
+              ? "bg-green-50 text-green-800 border-green-200"
+              : "bg-red-50 text-red-800 border-red-200"
+          }`}
+        >
+          <div className="flex justify-between items-center">
+            <span className="font-medium">{message.text}</span>
             <button
-              onClick={onBack}
-              className="text-gray-600 hover:text-gray-900"
+              onClick={() => setMessage({ type: "", text: "" })}
+              className="text-gray-500 hover:text-gray-700"
             >
-              ← Back
+              <X size={18} />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">
-              User Management
-            </h1>
           </div>
         </div>
-      </nav>
+      )}
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {message.text && (
-          <div
-            className={`mb-4 p-4 rounded-lg ${
-              message.type === "success"
-                ? "bg-green-50 text-green-800 border border-green-200"
-                : "bg-red-50 text-red-800 border border-red-200"
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <span>{message.text}</span>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatsCard
+          title="Total Users"
+          count={roleStats.all}
+          gradient="bg-gradient-to-br from-[#0698b2] to-[#0482a0]"
+          icon={UserPlus}
+        />
+        <StatsCard
+          title="Admins"
+          count={roleStats.admin}
+          gradient="bg-gradient-to-br from-purple-500 to-purple-600"
+          icon={Shield}
+        />
+        <StatsCard
+          title="Employers"
+          count={roleStats.employer}
+          gradient="bg-gradient-to-br from-green-500 to-green-600"
+          icon={Building}
+        />
+        <StatsCard
+          title="Candidates"
+          count={roleStats.candidate}
+          gradient="bg-gradient-to-br from-yellow-500 to-yellow-600"
+          icon={Mail}
+        />
+      </div>
+
+      {/* Main Content Card */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        {/* Search & Filter Bar */}
+        <div className="p-5 border-b border-gray-200">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">All Users</h3>
+              <p className="text-sm text-gray-600 mt-0.5">
+                {filteredUsers.length} user
+                {filteredUsers.length !== 1 ? "s" : ""} found
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="relative">
+                <Filter
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <select
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                  className="appearance-none w-full sm:w-auto pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0698b2] focus:border-transparent bg-white"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="admin">Admin</option>
+                  <option value="employer">Employer</option>
+                  <option value="candidate">Candidate</option>
+                </select>
+              </div>
+
+              <div className="relative flex-1 sm:flex-initial">
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0698b2] focus:border-transparent"
+                />
+              </div>
+
               <button
-                onClick={() => setMessage({ type: "", text: "" })}
-                className="text-gray-500 hover:text-gray-700"
+                onClick={openCreateModal}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#0698b2] hover:bg-[#0482a0] text-white text-sm font-medium rounded-lg transition-colors shadow-sm whitespace-nowrap"
               >
-                <X size={18} />
+                <Plus size={18} />
+                <span>Add User</span>
               </button>
             </div>
           </div>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <StatsCard title="Total Users" count={roleStats.all} color="blue" />
-          <StatsCard title="Admins" count={roleStats.admin} color="purple" />
-          <StatsCard
-            title="Employers"
-            count={roleStats.employer}
-            color="green"
-          />
-          <StatsCard
-            title="Candidates"
-            count={roleStats.candidate}
-            color="yellow"
-          />
-        </div>
-
-        {/* Search & Add */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex-1 flex gap-4 w-full md:w-auto">
-            <div className="relative flex-1">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="employer">Employer</option>
-              <option value="candidate">Candidate</option>
-            </select>
-          </div>
-          <button
-            onClick={openCreateModal}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 whitespace-nowrap"
-          >
-            <Plus size={20} /> Add User
-          </button>
         </div>
 
         {/* User Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Department
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created At
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredUsers.length === 0 ? (
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Department
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <td colSpan="6" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                        <UserPlus size={32} className="text-gray-300" />
+                      </div>
+                      <p className="text-gray-900 font-semibold text-lg mb-1">
+                        No users found
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        {searchTerm || filterRole !== "all"
+                          ? "Try adjusting your filters or search terms"
+                          : "Get started by adding your first user"}
+                      </p>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-8 text-center text-gray-500"
-                    >
-                      No users found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span className="text-blue-600 font-semibold">
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#0698b2] to-[#0482a0] flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
                             {user.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <span className="text-sm font-medium text-gray-900">
                           {user.name}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center gap-2">
-                        <Mail size={16} className="text-gray-400" />{" "}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm text-gray-900">
+                        <Mail size={16} className="text-gray-400" />
                         {user.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <RoleBadge role={user.role} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.department_name ? (
-                          <div className="flex items-center gap-2 text-sm text-gray-900">
-                            <Building size={16} className="text-gray-400" />{" "}
-                            {user.department_name}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-500">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <RoleBadge role={user.role} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.department_name ? (
+                        <div className="flex items-center gap-2 text-sm text-gray-900">
+                          <Building size={16} className="text-gray-400" />
+                          {user.department_name}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex justify-end gap-2">
                         <button
                           onClick={() => openEditModal(user)}
-                          className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded"
+                          className="p-2 text-[#0698b2] hover:text-[#0482a0] hover:bg-cyan-50 rounded-lg transition-colors"
                           title="Edit user"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(user.id, user.name)}
-                          className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded"
+                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete user"
                         >
                           <Trash2 size={18} />
                         </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      </main>
+      </div>
 
       {/* Modal */}
       {showModal && (
@@ -411,36 +444,39 @@ export default function UserManagement({ token, onBack }) {
           closeModal={closeModal}
         />
       )}
-    </div>
+    </>
   );
 }
 
-function StatsCard({ title, count, color }) {
-  const colors = {
-    blue: "bg-blue-50 text-blue-900",
-    purple: "bg-purple-50 text-purple-900",
-    green: "bg-green-50 text-green-900",
-    yellow: "bg-yellow-50 text-yellow-900",
-  };
+function StatsCard({ title, count, gradient, icon: Icon }) {
   return (
-    <div className={`rounded-lg p-6 ${colors[color]}`}>
-      <h3 className="text-sm font-medium mb-2">{title}</h3>
-      <p className="text-3xl font-bold">{count}</p>
+    <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-sm text-gray-600 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-gray-900">{count}</p>
+        </div>
+        <div
+          className={`w-12 h-12 rounded-lg ${gradient} flex items-center justify-center shadow-sm`}
+        >
+          <Icon size={22} className="text-white" />
+        </div>
+      </div>
     </div>
   );
 }
 
 function RoleBadge({ role }) {
   const styles = {
-    admin: "bg-purple-100 text-purple-800",
-    employer: "bg-green-100 text-green-800",
-    candidate: "bg-blue-100 text-blue-800",
+    admin: "bg-purple-100 text-purple-800 border-purple-200",
+    employer: "bg-green-100 text-green-800 border-green-200",
+    candidate: "bg-blue-100 text-blue-800 border-blue-200",
   };
-  const icons = { admin: Shield, employer: UserPlus, candidate: Mail };
+  const icons = { admin: Shield, employer: Building, candidate: Mail };
   const Icon = icons[role];
   return (
     <span
-      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${styles[role]}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${styles[role]}`}
     >
       <Icon size={14} />
       {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -448,7 +484,6 @@ function RoleBadge({ role }) {
   );
 }
 
-// Separate modal component
 function UserModal({
   formData,
   setFormData,
@@ -459,22 +494,29 @@ function UserModal({
 }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full">
-        <div className="p-6 border-b flex justify-between items-center">
-          <h2 className="text-xl font-bold">
-            {modalMode === "create" ? "Create New User" : "Edit User"}
-          </h2>
+      <div className="bg-white rounded-lg max-w-md w-full shadow-xl">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              {modalMode === "create" ? "Create New User" : "Edit User"}
+            </h2>
+            <p className="text-sm text-gray-600 mt-0.5">
+              {modalMode === "create"
+                ? "Add a new user to the system"
+                : "Update user information"}
+            </p>
+          </div>
           <button
             onClick={closeModal}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name *
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -482,13 +524,13 @@ function UserModal({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0698b2] focus:border-transparent"
               placeholder="John Doe"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -496,13 +538,21 @@ function UserModal({
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0698b2] focus:border-transparent"
               placeholder="john@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password {modalMode === "edit" && "(leave blank to keep current)"}
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Password{" "}
+              {modalMode === "create" && (
+                <span className="text-red-500">*</span>
+              )}
+              {modalMode === "edit" && (
+                <span className="text-gray-500 text-xs font-normal ml-1">
+                  (leave blank to keep current)
+                </span>
+              )}
             </label>
             <input
               type="password"
@@ -510,13 +560,13 @@ function UserModal({
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0698b2] focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role *
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Role <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.role}
@@ -530,7 +580,7 @@ function UserModal({
                       : "",
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0698b2] focus:border-transparent"
             >
               <option value="candidate">Candidate</option>
               <option value="employer">Employer</option>
@@ -539,15 +589,15 @@ function UserModal({
           </div>
           {formData.role === "candidate" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Department *
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Department <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.department_id}
                 onChange={(e) =>
                   setFormData({ ...formData, department_id: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0698b2] focus:border-transparent"
               >
                 <option value="">Select a department</option>
                 {departments.map((dept) => (
@@ -561,13 +611,13 @@ function UserModal({
           <div className="flex gap-3 pt-4">
             <button
               onClick={closeModal}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex-1 px-4 py-2.5 bg-[#0698b2] hover:bg-[#0482a0] text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
             >
               {modalMode === "create" ? "Create User" : "Update User"}
             </button>
@@ -575,5 +625,30 @@ function UserModal({
         </div>
       </div>
     </div>
+  );
+}
+
+// Main export with LayoutWrapper integration
+import LayoutWrapper from "./layout/LayoutWrapper";
+
+export default function UserManagement({
+  user,
+  token,
+  onLogout,
+  onNavigate,
+  activeTab,
+  setActiveTab,
+}) {
+  return (
+    <LayoutWrapper
+      user={user}
+      token={token}
+      onLogout={onLogout}
+      onNavigate={onNavigate}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+    >
+      <UserManagementContent token={token} />
+    </LayoutWrapper>
   );
 }

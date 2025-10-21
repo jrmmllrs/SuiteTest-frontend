@@ -7,11 +7,11 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 
-// Simple API URL - Change this if your backend is on different port
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 export default function InvitationsManager({ testId, token }) {
   const [invitations, setInvitations] = useState([]);
@@ -20,7 +20,6 @@ export default function InvitationsManager({ testId, token }) {
 
   useEffect(() => {
     fetchInvitations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId]);
 
   const fetchInvitations = async () => {
@@ -73,7 +72,6 @@ export default function InvitationsManager({ testId, token }) {
     }
 
     try {
-      // FIXED: Added /api prefix
       const response = await fetch(
         `${API_BASE_URL}/invitations/invitation/${invitationId}`,
         {
@@ -97,72 +95,126 @@ export default function InvitationsManager({ testId, token }) {
   const getStatusIcon = (status) => {
     switch (status) {
       case "pending":
-        return <Clock className="text-yellow-600" size={20} />;
+        return <Clock className="text-yellow-600" size={18} />;
       case "accepted":
-        return <AlertCircle className="text-blue-600" size={20} />;
+        return <AlertCircle className="text-blue-600" size={18} />;
       case "completed":
-        return <CheckCircle className="text-green-600" size={20} />;
+        return <CheckCircle className="text-green-600" size={18} />;
       case "expired":
-        return <XCircle className="text-red-600" size={20} />;
+        return <XCircle className="text-red-600" size={18} />;
       default:
-        return <Mail className="text-gray-600" size={20} />;
+        return <Mail className="text-gray-600" size={18} />;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-100 text-yellow-700";
       case "accepted":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-100 text-blue-700";
       case "completed":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 text-green-700";
       case "expired":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 text-red-700";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-700";
     }
   };
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading invitations...</p>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="text-center py-16">
+          <div className="inline-block w-12 h-12 border-4 border-[#0698b2] border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-gray-600 font-medium">Loading invitations...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <AlertCircle className="mx-auto text-red-500 mb-2" size={32} />
-        <p className="text-red-800">{error}</p>
-        <button
-          onClick={fetchInvitations}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Retry
-        </button>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+            <AlertCircle className="text-red-600" size={32} />
+          </div>
+          <p className="text-gray-900 font-semibold text-lg mb-2">Error Loading Invitations</p>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchInvitations}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0698b2] hover:bg-[#0482a0] text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+          >
+            <RefreshCw size={16} />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
+  const stats = {
+    pending: invitations.filter((i) => i.status === "pending").length,
+    accepted: invitations.filter((i) => i.status === "accepted").length,
+    completed: invitations.filter((i) => i.status === "completed").length,
+    total: invitations.length,
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200">
-        <h3 className="text-xl font-bold text-gray-900">Test Invitations</h3>
-        <p className="text-sm text-gray-600 mt-1">
-          Manage invitations sent for this test
-        </p>
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* Header */}
+      <div className="p-5 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Test Invitations</h3>
+            <p className="text-sm text-gray-600 mt-0.5">
+              Manage invitations sent for this test
+            </p>
+          </div>
+          <button
+            onClick={fetchInvitations}
+            className="p-2 text-gray-600 hover:text-[#0698b2] hover:bg-gray-100 rounded-lg transition-colors"
+            title="Refresh"
+          >
+            <RefreshCw size={18} />
+          </button>
+        </div>
       </div>
 
+      {/* Stats */}
+      {invitations.length > 0 && (
+        <div className="px-5 py-4 bg-gray-50 border-b border-gray-200">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Pending</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Accepted</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.accepted}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Completed</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Total</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
       {invitations.length === 0 ? (
         <div className="p-8 text-center">
-          <Mail className="mx-auto text-gray-400 mb-4" size={48} />
-          <p className="text-gray-600">No invitations sent yet</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Click "Invite Candidates" to send test invitations
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+            <Mail className="text-gray-400" size={32} />
+          </div>
+          <p className="text-gray-900 font-semibold text-lg mb-2">No invitations sent yet</p>
+          <p className="text-gray-600 text-sm">
+            Click "Invite" on the test card to send invitations
           </p>
         </div>
       ) : (
@@ -170,19 +222,19 @@ export default function InvitationsManager({ testId, token }) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Candidate
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Invited
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Expires
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -190,9 +242,9 @@ export default function InvitationsManager({ testId, token }) {
             <tbody className="bg-white divide-y divide-gray-200">
               {invitations.map((invitation) => (
                 <tr key={invitation.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-4">
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-semibold text-gray-900 text-sm">
                         {invitation.candidate_name}
                       </p>
                       <p className="text-sm text-gray-600">
@@ -200,11 +252,11 @@ export default function InvitationsManager({ testId, token }) {
                       </p>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(invitation.status)}
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                        className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(
                           invitation.status
                         )}`}
                       >
@@ -212,18 +264,18 @@ export default function InvitationsManager({ testId, token }) {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-5 py-4 text-sm text-gray-600">
                     {new Date(invitation.invited_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-5 py-4 text-sm text-gray-600">
                     {new Date(invitation.expires_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-4">
                     <div className="flex gap-2">
                       {invitation.status === "pending" && (
                         <button
                           onClick={() => sendReminder(invitation.id)}
-                          className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
                           title="Send Reminder"
                         >
                           <Send size={14} />
@@ -233,7 +285,7 @@ export default function InvitationsManager({ testId, token }) {
                       {invitation.status !== "completed" && (
                         <button
                           onClick={() => deleteInvitation(invitation.id)}
-                          className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded hover:bg-red-100 transition-colors"
                           title="Cancel Invitation"
                         >
                           <Trash2 size={14} />
@@ -248,34 +300,6 @@ export default function InvitationsManager({ testId, token }) {
           </table>
         </div>
       )}
-
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        <div className="flex justify-between text-sm text-gray-600">
-          <div className="space-x-4">
-            <span>
-              Pending:{" "}
-              <strong>
-                {invitations.filter((i) => i.status === "pending").length}
-              </strong>
-            </span>
-            <span>
-              Accepted:{" "}
-              <strong>
-                {invitations.filter((i) => i.status === "accepted").length}
-              </strong>
-            </span>
-            <span>
-              Completed:{" "}
-              <strong>
-                {invitations.filter((i) => i.status === "completed").length}
-              </strong>
-            </span>
-          </div>
-          <span>
-            Total: <strong>{invitations.length}</strong>
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
