@@ -4,12 +4,13 @@ import LayoutWrapper from "./layout/LayoutWrapper";
 import { TrendingUp, Users, FileText, Award } from "lucide-react";
 
 // Content Component
-function AdminResultsContent({ token, onNavigate }) {
+function AdminResultsContent({ token }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchResults = async () => {
@@ -19,10 +20,13 @@ function AdminResultsContent({ token, onNavigate }) {
       });
       const data = await response.json();
       if (data.success) {
-        setResults(data.results);
+        setResults(data.results || []);
+      } else {
+        setResults([]);
       }
     } catch (err) {
       console.error("Error fetching results:", err);
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -34,11 +38,11 @@ function AdminResultsContent({ token, onNavigate }) {
     averageScore:
       results.length > 0
         ? (
-            results.reduce((sum, r) => sum + parseFloat(r.score), 0) /
+            results.reduce((sum, r) => sum + (parseFloat(r.score) || 0), 0) /
             results.length
           ).toFixed(1)
         : 0,
-    passedCount: results.filter((r) => parseFloat(r.score) >= 70).length,
+    passedCount: results.filter((r) => (parseFloat(r.score) || 0) >= 70).length,
     uniqueTests: new Set(results.map((r) => r.test_title)).size,
   };
 
@@ -99,7 +103,8 @@ function AdminResultsContent({ token, onNavigate }) {
                 No test results found
               </p>
               <p className="text-gray-600 text-sm">
-                Test results will appear here once candidates complete their tests
+                Test results will appear here once candidates complete their
+                tests
               </p>
             </div>
           ) : (
@@ -129,39 +134,45 @@ function AdminResultsContent({ token, onNavigate }) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {results.map((r) => (
-                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={r.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#0698b2] to-[#0482a0] flex items-center justify-center">
                             <span className="text-white font-semibold text-sm">
-                              {r.candidate_name?.charAt(0).toUpperCase() || "?"}
+                              {r.candidate_name?.charAt(0)?.toUpperCase() ||
+                                "?"}
                             </span>
                           </div>
                           <span className="text-sm font-medium text-gray-900">
-                            {r.candidate_name}
+                            {r.candidate_name || "—"}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {r.candidate_email}
+                        {r.candidate_email || "—"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {r.test_title}
+                        {r.test_title || "—"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <ScoreBadge score={parseFloat(r.score)} />
+                        <ScoreBadge score={parseFloat(r.score) || 0} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <RemarksBadge remarks={r.remarks} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(r.taken_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {r.taken_at
+                          ? new Date(r.taken_at).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "—"}
                       </td>
                     </tr>
                   ))}
@@ -177,6 +188,7 @@ function AdminResultsContent({ token, onNavigate }) {
 
 // Stats Card Component
 function StatsCard({ title, count, gradient, icon: Icon }) {
+  // it's fine to render Icon as a component when a valid icon component is passed
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
@@ -187,7 +199,7 @@ function StatsCard({ title, count, gradient, icon: Icon }) {
         <div
           className={`w-12 h-12 rounded-lg ${gradient} flex items-center justify-center shadow-sm`}
         >
-          <Icon size={22} className="text-white" />
+          {Icon ? <Icon size={22} className="text-white" /> : null}
         </div>
       </div>
     </div>
@@ -197,12 +209,9 @@ function StatsCard({ title, count, gradient, icon: Icon }) {
 // Score Badge Component
 function ScoreBadge({ score }) {
   const getScoreStyle = () => {
-    if (score >= 90)
-      return "bg-green-100 text-green-800 border-green-200";
-    if (score >= 70)
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    if (score >= 50)
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    if (score >= 90) return "bg-green-100 text-green-800 border-green-200";
+    if (score >= 70) return "bg-blue-100 text-blue-800 border-blue-200";
+    if (score >= 50) return "bg-yellow-100 text-yellow-800 border-yellow-200";
     return "bg-red-100 text-red-800 border-red-200";
   };
 
@@ -243,7 +252,6 @@ function RemarksBadge({ remarks }) {
 export default function AdminResults({
   token,
   user,
-  onBack,
   onLogout,
   onNavigate,
   activeTab,
@@ -258,7 +266,7 @@ export default function AdminResults({
       activeTab={activeTab}
       setActiveTab={setActiveTab}
     >
-      <AdminResultsContent token={token} onNavigate={onNavigate} />
+      <AdminResultsContent token={token} />
     </LayoutWrapper>
   );
 }
