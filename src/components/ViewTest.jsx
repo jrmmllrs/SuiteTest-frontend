@@ -15,7 +15,7 @@ export default function ViewTest({ testId, token, onBack, onEdit }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/api/tests/${testId}`, {
+      const response = await fetch(`${API_BASE_URL}/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
