@@ -1,7 +1,6 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../../constants"; // ✅ Add this import
 
-// ✅ OPTION 1: Remove /api from URL (use this if your .env has the full path)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function InviteModal({ test, token, onClose }) {
   const [candidates, setCandidates] = useState([{ name: "", email: "" }]);

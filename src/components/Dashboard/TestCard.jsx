@@ -9,8 +9,7 @@ import {
   Building,
 } from "lucide-react";
 import InvitationsListModal from "./InvitationsListModal";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+import { API_BASE_URL } from "../../constants"; // ✅ Add this import
 
 export default function TestCard({ test, user, userRole, onNavigate, onInvite, token }) {
   const [invitations, setInvitations] = useState([]);
