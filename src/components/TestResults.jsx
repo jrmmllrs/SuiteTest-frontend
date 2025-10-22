@@ -18,10 +18,13 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
     try {
       setLoading(true);
       setError(null);
+
       const response = await fetch(`${API_BASE_URL}/tests/${testId}/results`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const data = await response.json();
+      console.log("✅ Raw results data:", data);
 
       if (data.success) {
         setResults(data.results || []);
@@ -37,28 +40,52 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
     }
   };
 
-  const calculatePercentage = (score, total) =>
-    Math.round((score / total) * 100);
+  // Format UTC timestamp to Philippine time (premium look)
+  const formatDate = (utcString) => {
+    if (!utcString) return "—";
 
-  const formatDate = (dateString) =>
-    dateString ? new Date(dateString).toLocaleString() : "N/A";
+    const date = new Date(utcString);
+    if (isNaN(date)) return "—";
 
+    // PH timezone offset = +8 hours
+    const phTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+
+    const options = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    };
+
+    return phTime.toLocaleString("en-PH", options).replace(",", " •");
+  };
+
+  // Duration between start and finish
   const calculateDuration = (startTime, endTime) => {
-    if (!startTime || !endTime) return "N/A";
-    
+    if (!startTime || !endTime) return "—";
+
     const start = new Date(startTime);
     const end = new Date(endTime);
     const diffMs = end - start;
-    
-    if (diffMs < 0) return "N/A";
-    
+
+    if (isNaN(diffMs) || diffMs < 0) return "—";
+
     const diffMins = Math.floor(diffMs / 60000);
     const diffSecs = Math.floor((diffMs % 60000) / 1000);
-    
-    if (diffMins === 0) {
-      return `${diffSecs}s`;
-    }
+
+    if (diffMins === 0) return `${diffSecs}s`;
     return `${diffMins}m ${diffSecs}s`;
+  };
+
+  // Percentage calculation
+  const calculatePercentage = (score, total) => {
+    if (!total || total <= 0) return 0;
+    const percent = (score / total) * 100;
+    const rounded = Math.round(percent);
+    if (score > 0 && rounded === 0) return 1;
+    return Math.min(100, rounded);
   };
 
   if (loading) return <LoadingScreen />;
@@ -90,7 +117,7 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
 
         <div className="bg-white rounded-lg shadow p-6">
           <h1 className="text-2xl font-bold mb-2">
-            Test Results: {testInfo?.title}
+            Test Results: {testInfo?.title || "—"}
           </h1>
           <p className="text-gray-600 mb-6">
             Total submissions: {results.length}
@@ -128,6 +155,7 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                     </th>
                   </tr>
                 </thead>
+
                 <tbody className="bg-white divide-y divide-gray-200">
                   {results.map((result, index) => (
                     <tr
@@ -136,20 +164,22 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {result.candidate_name}
+                          {result.candidate_name || "No Name"}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {result.candidate_email}
+                          {result.candidate_email || "—"}
                         </div>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {result.score} / {result.total_questions}
+                          {result.correct_answers} / {result.total_questions}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {result.remarks}
+                        <div className="text-xs text-green-600 font-medium">
+                          {result.remarks || "—"}
                         </div>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-gray-900">
                           {calculatePercentage(
@@ -159,17 +189,24 @@ export default function TestResults({ testId, token, onBack, onNavigate }) {
                           %
                         </div>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {calculateDuration(result.taken_at, result.finished_at)}
+                          {calculateDuration(
+                            result.taken_at,
+                            result.finished_at
+                          )}
                         </div>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(result.taken_at)}
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(result.finished_at)}
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
                           onClick={() =>

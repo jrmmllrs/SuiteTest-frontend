@@ -46,6 +46,27 @@ function AdminResultsContent({ token }) {
     uniqueTests: new Set(results.map((r) => r.test_title)).size,
   };
 
+  // ✅ PH timezone formatter
+  const formatDate = (utcString) => {
+    if (!utcString) return "—";
+    const date = new Date(utcString);
+    if (isNaN(date)) return "—";
+
+    // PH timezone offset +8 hours
+    const phTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+
+    return phTime
+      .toLocaleString("en-PH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(",", " •");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -164,15 +185,7 @@ function AdminResultsContent({ token }) {
                         <RemarksBadge remarks={r.remarks} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {r.taken_at
-                          ? new Date(r.taken_at).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "—"}
+                        {formatDate(r.taken_at)}
                       </td>
                     </tr>
                   ))}
@@ -188,7 +201,6 @@ function AdminResultsContent({ token }) {
 
 // Stats Card Component
 function StatsCard({ title, count, gradient, icon: Icon }) {
-  // it's fine to render Icon as a component when a valid icon component is passed
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
