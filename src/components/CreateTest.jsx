@@ -84,25 +84,31 @@ export default function CreateTest({ user, token, onBack }) {
     }
   };
 
-  const fetchAvailableQuestions = async () => {
-    setLoadingQuestions(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/tests/questions/all`, {
+const fetchAvailableQuestions = async () => {
+  setLoadingQuestions(true);
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/tests/questions/all?source=question-bank`, // 👈 Added this query param
+      {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (data.success) {
-        setAvailableQuestions(data.questions || []);
-      } else {
-        setMessage({ type: "error", text: "Failed to load question bank" });
       }
-    } catch (error) {
-      console.error("Error fetching questions:", error);
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      setAvailableQuestions(data.questions || []);
+    } else {
       setMessage({ type: "error", text: "Failed to load question bank" });
-    } finally {
-      setLoadingQuestions(false);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    setMessage({ type: "error", text: "Failed to load question bank" });
+  } finally {
+    setLoadingQuestions(false);
+  }
+};
+
 
   const handleTestDataChange = (e) => {
     setTestData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -692,7 +698,9 @@ export default function CreateTest({ user, token, onBack }) {
                 <div className="text-center py-8">Loading questions...</div>
               ) : filteredQuestions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  No questions found
+                  {searchQuery || filterType !== "all" 
+                    ? "No questions found matching your filters" 
+                    : "No questions available in your department's question bank"}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -723,6 +731,11 @@ export default function CreateTest({ user, token, onBack }) {
                               <span className="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-700 rounded">
                                 {qType?.type_name || question.question_type}
                               </span>
+                              {question.test_title && (
+                                <span className="text-xs text-gray-500">
+                                  from: {question.test_title}
+                                </span>
+                              )}
                             </div>
                             <p className="font-medium text-gray-900 mb-2">
                               {question.question_text}
