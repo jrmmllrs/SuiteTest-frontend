@@ -90,7 +90,7 @@ export default function AnswerReview({ testId, candidateId, token, onBack }) {
   }
 
   const { test, result, questions } = review;
-  const percentage = Math.round((result.score / result.total_questions) * 100);
+  const percentage = Math.round((result.correct_answers / result.total_questions) * 100);
 
   // NEW: Check if this is a PDF-based test
   const isPdfTest = test.test_type === "pdf_based" && test.google_drive_id;
