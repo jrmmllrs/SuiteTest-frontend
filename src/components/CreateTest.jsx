@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Save, Upload, FileText, X, ExternalLink } from "lucide-react";
+import { Plus, Save, Upload, FileText, X, ExternalLink, Library } from "lucide-react";
 import { API_BASE_URL } from "../constants";
 import { NavBar } from "./ui/Navbar";
 import { Alert } from "./ui/Alert";
@@ -25,6 +25,12 @@ export default function CreateTest({ user, token, onBack }) {
   const [questionTypes, setQuestionTypes] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [showQuestionBank, setShowQuestionBank] = useState(false);
+  const [availableQuestions, setAvailableQuestions] = useState([]);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState(new Set());
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("all");
   const [currentQuestion, setCurrentQuestion] = useState({
     question_text: "",
     question_type: "multiple_choice",
@@ -75,6 +81,26 @@ export default function CreateTest({ user, token, onBack }) {
       setMessage({ type: "error", text: "Failed to load question types or departments" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAvailableQuestions = async () => {
+    setLoadingQuestions(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/tests/questions/all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setAvailableQuestions(data.questions || []);
+      } else {
+        setMessage({ type: "error", text: "Failed to load question bank" });
+      }
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+      setMessage({ type: "error", text: "Failed to load question bank" });
+    } finally {
+      setLoadingQuestions(false);
     }
   };
 
@@ -247,6 +273,54 @@ export default function CreateTest({ user, token, onBack }) {
     setShowQuestionForm(false);
   };
 
+  const openQuestionBank = () => {
+    setShowQuestionBank(true);
+    fetchAvailableQuestions();
+  };
+
+  const closeQuestionBank = () => {
+    setShowQuestionBank(false);
+    setSearchQuery("");
+    setFilterType("all");
+  };
+
+  const toggleQuestionSelection = (question) => {
+    const newSelected = new Set(selectedQuestionIds);
+    const questionId = `existing_${question.id}`;
+    
+    if (newSelected.has(questionId)) {
+      newSelected.delete(questionId);
+    } else {
+      newSelected.add(questionId);
+    }
+    setSelectedQuestionIds(newSelected);
+  };
+
+  const addSelectedQuestions = () => {
+    const questionsToAdd = availableQuestions
+      .filter(q => selectedQuestionIds.has(`existing_${q.id}`))
+      .map(q => ({
+        ...q,
+        question_text: q.question_text,
+        question_type: q.question_type,
+        options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : [],
+        correct_answer: q.correct_answer || "",
+        explanation: q.explanation || "",
+        existing_id: q.id
+      }));
+
+    setQuestions([...questions, ...questionsToAdd]);
+    setSelectedQuestionIds(new Set());
+    setShowQuestionBank(false);
+    setMessage({ type: "success", text: `Added ${questionsToAdd.length} question(s) from bank` });
+  };
+
+  const filteredQuestions = availableQuestions.filter(q => {
+    const matchesSearch = q.question_text.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === "all" || q.question_type === filterType;
+    return matchesSearch && matchesType;
+  });
+
   const saveTest = async () => {
     if (!testData.title.trim()) {
       setMessage({ type: "error", text: "Test title is required" });
@@ -392,7 +466,6 @@ export default function CreateTest({ user, token, onBack }) {
                 min="1"
               />
 
-              {/* Test Type Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Test Type
@@ -408,7 +481,6 @@ export default function CreateTest({ user, token, onBack }) {
                 </select>
               </div>
 
-              {/* Target Role Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Target Audience
@@ -424,7 +496,6 @@ export default function CreateTest({ user, token, onBack }) {
                 </select>
               </div>
 
-              {/* Department Selection (only for candidate tests) */}
               {testData.target_role === 'candidate' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -449,7 +520,6 @@ export default function CreateTest({ user, token, onBack }) {
                 </div>
               )}
 
-              {/* PDF Upload Section */}
               {testData.test_type === "pdf_based" && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center gap-2 mb-3">
@@ -513,9 +583,18 @@ export default function CreateTest({ user, token, onBack }) {
                 Questions ({questions.length})
               </h2>
               {!showQuestionForm && (
-                <Button onClick={() => setShowQuestionForm(true)} icon={Plus}>
-                  Add Question
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={openQuestionBank} 
+                    icon={Library}
+                    variant="secondary"
+                  >
+                    Question Bank
+                  </Button>
+                  <Button onClick={() => setShowQuestionForm(true)} icon={Plus}>
+                    New Question
+                  </Button>
+                </div>
               )}
             </div>
 
@@ -565,6 +644,125 @@ export default function CreateTest({ user, token, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* Question Bank Modal */}
+      {showQuestionBank && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Question Bank</h2>
+                <button
+                  onClick={closeQuestionBank}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="flex gap-4">
+                <Input
+                  type="text"
+                  placeholder="Search questions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1"
+                />
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Types</option>
+                  {questionTypes.map((type) => (
+                    <option key={type.type_key} value={type.type_key}>
+                      {type.type_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mt-3 text-sm text-gray-600">
+                {selectedQuestionIds.size} question(s) selected
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingQuestions ? (
+                <div className="text-center py-8">Loading questions...</div>
+              ) : filteredQuestions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No questions found
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredQuestions.map((question) => {
+                    const isSelected = selectedQuestionIds.has(`existing_${question.id}`);
+                    const qType = questionTypes.find(t => t.type_key === question.question_type);
+                    const options = question.options ? (typeof question.options === 'string' ? JSON.parse(question.options) : question.options) : [];
+
+                    return (
+                      <div
+                        key={question.id}
+                        onClick={() => toggleQuestionSelection(question)}
+                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                {qType?.type_name || question.question_type}
+                              </span>
+                            </div>
+                            <p className="font-medium text-gray-900 mb-2">
+                              {question.question_text}
+                            </p>
+                            {options.length > 0 && (
+                              <div className="space-y-1">
+                                {options.map((option, idx) => (
+                                  <div key={idx} className="text-sm text-gray-600 flex items-center gap-2">
+                                    <span className="font-medium">{String.fromCharCode(65 + idx)}.</span>
+                                    <span>{option}</span>
+                                    {question.correct_answer === option && (
+                                      <span className="text-green-600 text-xs">(Correct)</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <Button variant="secondary" onClick={closeQuestionBank}>
+                Cancel
+              </Button>
+              <Button
+                onClick={addSelectedQuestions}
+                disabled={selectedQuestionIds.size === 0}
+              >
+                Add {selectedQuestionIds.size > 0 ? `${selectedQuestionIds.size} ` : ''}Question(s)
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

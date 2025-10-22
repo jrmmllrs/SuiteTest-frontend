@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // File: src/components/dashboard/Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import {
@@ -11,11 +12,15 @@ import {
   Filter,
   ListChecks,
   Users,
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  FolderOpen,
 } from "lucide-react";
 import TestCard from "./TestCard";
 import InviteModal from "./InviteModal";
 import DeleteTestModal from "./DeleteTestModal";
-import AllInvitationsView from "./AllInvitationsView"; // ✅ FIXED: Changed from "../../components/AllInvitationsView"
+import AllInvitationsView from "./AllInvitationsView";
 import LayoutWrapper from "../layout/LayoutWrapper";
 
 const API_BASE_URL =
@@ -40,6 +45,78 @@ function StatsCard({ label, value, icon: Icon, gradient }) {
   );
 }
 
+// Folder Component (Only for Admin/Employer)
+function TestFolder({
+  folderName,
+  tests,
+  isOpen,
+  onToggle,
+  user,
+  onNavigate,
+  onInvite,
+  onDelete,
+  token,
+}) {
+  const completedCount = tests.filter((t) => t.is_completed).length;
+  const inProgressCount = tests.filter(
+    (t) => t.is_in_progress && !t.is_completed
+  ).length;
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          {isOpen ? (
+            <FolderOpen size={20} className="text-[#0698b2]" />
+          ) : (
+            <Folder size={20} className="text-gray-400" />
+          )}
+          <div className="text-left">
+            <h3 className="font-semibold text-gray-900">{folderName}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {tests.length} test{tests.length !== 1 ? "s" : ""}
+              {completedCount > 0 && ` • ${completedCount} completed`}
+              {inProgressCount > 0 && ` • ${inProgressCount} in progress`}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="px-3 py-1 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700">
+            {tests.length}
+          </span>
+          {isOpen ? (
+            <ChevronDown size={20} className="text-gray-400" />
+          ) : (
+            <ChevronRight size={20} className="text-gray-400" />
+          )}
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="p-4 bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tests.map((test) => (
+              <TestCard
+                key={test.id}
+                test={test}
+                user={user}
+                userRole={user?.role}
+                onNavigate={onNavigate}
+                onInvite={onInvite}
+                onDelete={onDelete}
+                token={token}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Dashboard Content Component (without layout/sidebar)
 function DashboardContent({ user, token, onNavigate, activeTab }) {
   const [tests, setTests] = useState([]);
@@ -50,6 +127,7 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
   const [selectedTestForDelete, setSelectedTestForDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [openFolders, setOpenFolders] = useState({});
 
   useEffect(() => {
     if (activeTab === "dashboard") {
@@ -139,9 +217,11 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
   };
 
   const filteredTests = tests.filter((test) => {
+    const departmentName = test.department_name || "Uncategorized";
     const matchesSearch =
       test.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      test.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      test.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      departmentName.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (filterStatus === "all") return matchesSearch;
     if (filterStatus === "completed") return matchesSearch && test.is_completed;
@@ -152,6 +232,47 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
 
     return matchesSearch;
   });
+
+  // Group tests by department (only for admin/employer)
+  const shouldUseFolders = user?.role === "admin" || user?.role === "employer";
+
+  const testsByDepartment = shouldUseFolders
+    ? filteredTests.reduce((acc, test) => {
+        // Use department_name from backend, fallback to "Uncategorized"
+        const deptName = test.department_name || "Uncategorized";
+        if (!acc[deptName]) {
+          acc[deptName] = [];
+        }
+        acc[deptName].push(test);
+        return acc;
+      }, {})
+    : {};
+
+  const departmentNames = shouldUseFolders
+    ? Object.keys(testsByDepartment).sort()
+    : [];
+
+  // Toggle folder
+  const toggleFolder = (dept) => {
+    setOpenFolders((prev) => ({
+      ...prev,
+      [dept]: !prev[dept],
+    }));
+  };
+
+  // Expand all folders
+  const expandAll = () => {
+    const allOpen = {};
+    departmentNames.forEach((dept) => {
+      allOpen[dept] = true;
+    });
+    setOpenFolders(allOpen);
+  };
+
+  // Collapse all folders
+  const collapseAll = () => {
+    setOpenFolders({});
+  };
 
   const totalQuestions = tests.reduce(
     (sum, test) => sum + (test.question_count || 0),
@@ -169,11 +290,10 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
 
   // Show Invitations View when invitations tab is active
   if (activeTab === "invitations") {
-    console.log("Rendering AllInvitationsView", { user, token: !!token });
-    return <AllInvitationsView user={user} token={token} onNavigate={onNavigate} />;
+    return (
+      <AllInvitationsView user={user} token={token} onNavigate={onNavigate} />
+    );
   }
-
-  console.log("DashboardContent activeTab:", activeTab);
 
   return (
     <>
@@ -270,7 +390,12 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
               </h3>
               <p className="text-sm text-gray-600 mt-0.5">
                 {filteredTests.length} test
-                {filteredTests.length !== 1 ? "s" : ""} found
+                {filteredTests.length !== 1 ? "s" : ""}
+                {shouldUseFolders
+                  ? ` in ${departmentNames.length} folder${
+                      departmentNames.length !== 1 ? "s" : ""
+                    }`
+                  : " found"}
               </p>
             </div>
 
@@ -343,7 +468,49 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
                   : 'No tests created yet. Click "New Test" to get started!'}
               </p>
             </div>
+          ) : shouldUseFolders ? (
+            <>
+              {/* Expand/Collapse All - Only for Admin/Employer */}
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-gray-600">
+                  {departmentNames.length} department
+                  {departmentNames.length !== 1 ? "s" : ""}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={expandAll}
+                    className="text-sm text-[#0698b2] hover:text-[#0482a0] font-medium"
+                  >
+                    Expand All
+                  </button>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    onClick={collapseAll}
+                    className="text-sm text-[#0698b2] hover:text-[#0482a0] font-medium"
+                  >
+                    Collapse All
+                  </button>
+                </div>
+              </div>
+
+              {/* Folders - Only for Admin/Employer */}
+              {departmentNames.map((deptName) => (
+                <TestFolder
+                  key={deptName}
+                  folderName={deptName}
+                  tests={testsByDepartment[deptName]}
+                  isOpen={openFolders[deptName]}
+                  onToggle={() => toggleFolder(deptName)}
+                  user={user}
+                  onNavigate={onNavigate}
+                  onInvite={openInviteModal}
+                  onDelete={openDeleteModal}
+                  token={token}
+                />
+              ))}
+            </>
           ) : (
+            // Direct Grid View - For Candidates (like old dashboard)
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredTests.map((test) => (
                 <TestCard
@@ -383,7 +550,14 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
 }
 
 // Main Dashboard Component with Layout
-export default function Dashboard({ user, token, onLogout, onNavigate, activeTab, setActiveTab }) {
+export default function Dashboard({
+  user,
+  token,
+  onLogout,
+  onNavigate,
+  activeTab,
+  setActiveTab,
+}) {
   return (
     <LayoutWrapper
       user={user}
@@ -393,9 +567,9 @@ export default function Dashboard({ user, token, onLogout, onNavigate, activeTab
       activeTab={activeTab}
       setActiveTab={setActiveTab}
     >
-      <DashboardContent 
-        user={user} 
-        token={token} 
+      <DashboardContent
+        user={user}
+        token={token}
         onNavigate={onNavigate}
         activeTab={activeTab}
       />
