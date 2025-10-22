@@ -39,6 +39,7 @@ export default function CreateTest({ user, token, onBack }) {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [filterTest, setFilterTest] = useState("all");
   const [currentQuestion, setCurrentQuestion] = useState({
     question_text: "",
     question_type: "multiple_choice",
@@ -99,7 +100,7 @@ export default function CreateTest({ user, token, onBack }) {
     setLoadingQuestions(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/tests/questions/all?source=question-bank`, // 👈 Added this query param
+        `${API_BASE_URL}/tests/questions/all?source=question-bank`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -300,6 +301,7 @@ export default function CreateTest({ user, token, onBack }) {
     setShowQuestionBank(false);
     setSearchQuery("");
     setFilterType("all");
+    setFilterTest("all");
   };
 
   const toggleQuestionSelection = (question) => {
@@ -345,8 +347,21 @@ export default function CreateTest({ user, token, onBack }) {
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || q.question_type === filterType;
-    return matchesSearch && matchesType;
+    const matchesTest = filterTest === "all" || String(q.test_id) === String(filterTest);
+    return matchesSearch && matchesType && matchesTest;
   });
+
+  // Get unique tests for the filter dropdown
+  const uniqueTests = availableQuestions
+    .filter(q => q.test_title && q.test_id)
+    .reduce((acc, q) => {
+      const existing = acc.find(t => t.id === q.test_id);
+      if (!existing) {
+        acc.push({ id: q.test_id, title: q.test_title });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => a.title.localeCompare(b.title));
 
   const saveTest = async () => {
     if (!testData.title.trim()) {
@@ -725,6 +740,18 @@ export default function CreateTest({ user, token, onBack }) {
                     </option>
                   ))}
                 </select>
+                <select
+                  value={filterTest}
+                  onChange={(e) => setFilterTest(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[200px]"
+                >
+                  <option value="all">All Tests</option>
+                  {uniqueTests.map((test) => (
+                    <option key={test.id} value={test.id}>
+                      {test.title}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="mt-3 text-sm text-gray-600">
@@ -737,7 +764,7 @@ export default function CreateTest({ user, token, onBack }) {
                 <div className="text-center py-8">Loading questions...</div>
               ) : filteredQuestions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  {searchQuery || filterType !== "all"
+                  {searchQuery || filterType !== "all" || filterTest !== "all"
                     ? "No questions found matching your filters"
                     : "No questions available in your department's question bank"}
                 </div>
@@ -774,13 +801,14 @@ export default function CreateTest({ user, token, onBack }) {
                             className="mt-1"
                           />
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <span className="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-700 rounded">
                                 {qType?.type_name || question.question_type}
                               </span>
                               {question.test_title && (
-                                <span className="text-xs text-gray-500">
-                                  from: {question.test_title}
+                                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded flex items-center gap-1">
+                                  <FileText size={12} />
+                                  <span className="font-medium">Test:</span> {question.test_title}
                                 </span>
                               )}
                             </div>

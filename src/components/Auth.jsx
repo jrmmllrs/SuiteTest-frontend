@@ -24,25 +24,33 @@ export default function Auth({ onAuthSuccess }) {
     }
   }, [isLogin]);
 
-  const fetchDepartments = async () => {
-    setLoadingDepartments(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/users/departments`);
-      const data = await response.json();
+const fetchDepartments = async () => {
+  setLoadingDepartments(true);
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/departments`);
+    const data = await response.json();
 
-      if (data.success) {
-        setDepartments(data.departments || []);
-      } else {
-        console.error("Failed to fetch departments:", data.message);
-        setError("Failed to load departments. Please refresh the page.");
-      }
-    } catch (error) {
-      console.error("Error fetching departments:", error);
-      setError("Failed to load departments. Please check your connection.");
-    } finally {
-      setLoadingDepartments(false);
+    if (data.success) {
+      // 🔒 Hide "Question Bank" or any internal departments
+      const filteredDepartments = (data.departments || []).filter(
+        (dept) =>
+          dept.department_name.toLowerCase() !== "question bank" &&
+          dept.department_name.toLowerCase() !== "admin" // optional
+      );
+
+      setDepartments(filteredDepartments);
+    } else {
+      console.error("Failed to fetch departments:", data.message);
+      setError("Failed to load departments. Please refresh the page.");
     }
-  };
+  } catch (error) {
+    console.error("Error fetching departments:", error);
+    setError("Failed to load departments. Please check your connection.");
+  } finally {
+    setLoadingDepartments(false);
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
