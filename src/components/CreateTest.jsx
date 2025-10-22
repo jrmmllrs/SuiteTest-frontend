@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Save, Upload, FileText, X, ExternalLink, Library } from "lucide-react";
+import {
+  Plus,
+  Save,
+  Upload,
+  FileText,
+  X,
+  ExternalLink,
+  Library,
+} from "lucide-react";
 import { API_BASE_URL } from "../constants";
 import { NavBar } from "./ui/Navbar";
 import { Alert } from "./ui/Alert";
@@ -78,37 +86,39 @@ export default function CreateTest({ user, token, onBack }) {
       }
     } catch (error) {
       console.error("Error fetching initial data:", error);
-      setMessage({ type: "error", text: "Failed to load question types or departments" });
+      setMessage({
+        type: "error",
+        text: "Failed to load question types or departments",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-const fetchAvailableQuestions = async () => {
-  setLoadingQuestions(true);
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/tests/questions/all?source=question-bank`, // 👈 Added this query param
-      {
-        headers: { Authorization: `Bearer ${token}` },
+  const fetchAvailableQuestions = async () => {
+    setLoadingQuestions(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/tests/questions/all?source=question-bank`, // 👈 Added this query param
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAvailableQuestions(data.questions || []);
+      } else {
+        setMessage({ type: "error", text: "Failed to load question bank" });
       }
-    );
-
-    const data = await response.json();
-
-    if (data.success) {
-      setAvailableQuestions(data.questions || []);
-    } else {
+    } catch (error) {
+      console.error("Error fetching questions:", error);
       setMessage({ type: "error", text: "Failed to load question bank" });
+    } finally {
+      setLoadingQuestions(false);
     }
-  } catch (error) {
-    console.error("Error fetching questions:", error);
-    setMessage({ type: "error", text: "Failed to load question bank" });
-  } finally {
-    setLoadingQuestions(false);
-  }
-};
-
+  };
 
   const handleTestDataChange = (e) => {
     setTestData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -119,7 +129,7 @@ const fetchAvailableQuestions = async () => {
     const patterns = [
       /\/d\/([a-zA-Z0-9_-]+)/,
       /id=([a-zA-Z0-9_-]+)/,
-      /^([a-zA-Z0-9_-]{25,})$/
+      /^([a-zA-Z0-9_-]{25,})$/,
     ];
     for (const pattern of patterns) {
       const match = url.match(pattern);
@@ -131,12 +141,14 @@ const fetchAvailableQuestions = async () => {
   const handlePdfUrlChange = (e) => {
     const url = e.target.value;
     const driveId = extractDriveId(url);
-    
+
     setTestData((prev) => ({
       ...prev,
       pdf_url: url,
       google_drive_id: driveId,
-      thumbnail_url: driveId ? `https://drive.google.com/thumbnail?id=${driveId}` : "",
+      thumbnail_url: driveId
+        ? `https://drive.google.com/thumbnail?id=${driveId}`
+        : "",
     }));
   };
 
@@ -293,7 +305,7 @@ const fetchAvailableQuestions = async () => {
   const toggleQuestionSelection = (question) => {
     const newSelected = new Set(selectedQuestionIds);
     const questionId = `existing_${question.id}`;
-    
+
     if (newSelected.has(questionId)) {
       newSelected.delete(questionId);
     } else {
@@ -304,25 +316,34 @@ const fetchAvailableQuestions = async () => {
 
   const addSelectedQuestions = () => {
     const questionsToAdd = availableQuestions
-      .filter(q => selectedQuestionIds.has(`existing_${q.id}`))
-      .map(q => ({
+      .filter((q) => selectedQuestionIds.has(`existing_${q.id}`))
+      .map((q) => ({
         ...q,
         question_text: q.question_text,
         question_type: q.question_type,
-        options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : [],
+        options: q.options
+          ? typeof q.options === "string"
+            ? JSON.parse(q.options)
+            : q.options
+          : [],
         correct_answer: q.correct_answer || "",
         explanation: q.explanation || "",
-        existing_id: q.id
+        existing_id: q.id,
       }));
 
     setQuestions([...questions, ...questionsToAdd]);
     setSelectedQuestionIds(new Set());
     setShowQuestionBank(false);
-    setMessage({ type: "success", text: `Added ${questionsToAdd.length} question(s) from bank` });
+    setMessage({
+      type: "success",
+      text: `Added ${questionsToAdd.length} question(s) from bank`,
+    });
   };
 
-  const filteredQuestions = availableQuestions.filter(q => {
-    const matchesSearch = q.question_text.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredQuestions = availableQuestions.filter((q) => {
+    const matchesSearch = q.question_text
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || q.question_type === filterType;
     return matchesSearch && matchesType;
   });
@@ -338,13 +359,19 @@ const fetchAvailableQuestions = async () => {
       return;
     }
 
-    if (testData.test_type === 'pdf_based' && !testData.pdf_url.trim()) {
-      setMessage({ type: "error", text: "PDF URL is required for PDF-based tests" });
+    if (testData.test_type === "pdf_based" && !testData.pdf_url.trim()) {
+      setMessage({
+        type: "error",
+        text: "PDF URL is required for PDF-based tests",
+      });
       return;
     }
 
-    if (testData.target_role === 'candidate' && !testData.department_id) {
-      setMessage({ type: "error", text: "Department is required for candidate tests" });
+    if (testData.target_role === "candidate" && !testData.department_id) {
+      setMessage({
+        type: "error",
+        text: "Department is required for candidate tests",
+      });
       return;
     }
 
@@ -398,9 +425,9 @@ const fetchAvailableQuestions = async () => {
       setMessage({ type: "success", text: "Test created successfully!" });
 
       setTimeout(() => {
-        setTestData({ 
-          title: "", 
-          description: "", 
+        setTestData({
+          title: "",
+          description: "",
           time_limit: 30,
           pdf_url: "",
           google_drive_id: "",
@@ -502,7 +529,7 @@ const fetchAvailableQuestions = async () => {
                 </select>
               </div>
 
-              {testData.target_role === 'candidate' && (
+              {testData.target_role === "candidate" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Department *
@@ -521,7 +548,8 @@ const fetchAvailableQuestions = async () => {
                     ))}
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    This test will only be visible to candidates in the selected department
+                    This test will only be visible to candidates in the selected
+                    department
                   </p>
                 </div>
               )}
@@ -530,7 +558,9 @@ const fetchAvailableQuestions = async () => {
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center gap-2 mb-3">
                     <Upload className="text-blue-600" size={20} />
-                    <h3 className="font-semibold text-gray-900">PDF Attachment</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      PDF Attachment
+                    </h3>
                   </div>
 
                   {!testData.pdf_url ? (
@@ -546,7 +576,10 @@ const fetchAvailableQuestions = async () => {
                       <div className="mt-2 text-xs text-gray-600 space-y-1">
                         <p>• Paste the Google Drive sharing link</p>
                         <p>• Or just paste the file ID</p>
-                        <p>• Make sure the file is set to "Anyone with the link can view"</p>
+                        <p>
+                          • Make sure the file is set to "Anyone with the link
+                          can view"
+                        </p>
                       </div>
                     </div>
                   ) : (
@@ -555,8 +588,12 @@ const fetchAvailableQuestions = async () => {
                         <div className="flex items-center gap-3">
                           <FileText className="text-blue-600" size={24} />
                           <div>
-                            <p className="font-medium text-sm text-gray-900">PDF Attached</p>
-                            <p className="text-xs text-gray-500">ID: {testData.google_drive_id}</p>
+                            <p className="font-medium text-sm text-gray-900">
+                              PDF Attached
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              ID: {testData.google_drive_id}
+                            </p>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -590,8 +627,8 @@ const fetchAvailableQuestions = async () => {
               </h2>
               {!showQuestionForm && (
                 <div className="flex gap-2">
-                  <Button 
-                    onClick={openQuestionBank} 
+                  <Button
+                    onClick={openQuestionBank}
                     icon={Library}
                     variant="secondary"
                   >
@@ -657,7 +694,9 @@ const fetchAvailableQuestions = async () => {
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">Question Bank</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Question Bank
+                </h2>
                 <button
                   onClick={closeQuestionBank}
                   className="text-gray-400 hover:text-gray-600"
@@ -698,16 +737,24 @@ const fetchAvailableQuestions = async () => {
                 <div className="text-center py-8">Loading questions...</div>
               ) : filteredQuestions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  {searchQuery || filterType !== "all" 
-                    ? "No questions found matching your filters" 
+                  {searchQuery || filterType !== "all"
+                    ? "No questions found matching your filters"
                     : "No questions available in your department's question bank"}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {filteredQuestions.map((question) => {
-                    const isSelected = selectedQuestionIds.has(`existing_${question.id}`);
-                    const qType = questionTypes.find(t => t.type_key === question.question_type);
-                    const options = question.options ? (typeof question.options === 'string' ? JSON.parse(question.options) : question.options) : [];
+                    const isSelected = selectedQuestionIds.has(
+                      `existing_${question.id}`
+                    );
+                    const qType = questionTypes.find(
+                      (t) => t.type_key === question.question_type
+                    );
+                    const options = question.options
+                      ? typeof question.options === "string"
+                        ? JSON.parse(question.options)
+                        : question.options
+                      : [];
 
                     return (
                       <div
@@ -715,8 +762,8 @@ const fetchAvailableQuestions = async () => {
                         onClick={() => toggleQuestionSelection(question)}
                         className={`border rounded-lg p-4 cursor-pointer transition-all ${
                           isSelected
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -743,11 +790,18 @@ const fetchAvailableQuestions = async () => {
                             {options.length > 0 && (
                               <div className="space-y-1">
                                 {options.map((option, idx) => (
-                                  <div key={idx} className="text-sm text-gray-600 flex items-center gap-2">
-                                    <span className="font-medium">{String.fromCharCode(65 + idx)}.</span>
+                                  <div
+                                    key={idx}
+                                    className="text-sm text-gray-600 flex items-center gap-2"
+                                  >
+                                    <span className="font-medium">
+                                      {String.fromCharCode(65 + idx)}.
+                                    </span>
                                     <span>{option}</span>
                                     {question.correct_answer === option && (
-                                      <span className="text-green-600 text-xs">(Correct)</span>
+                                      <span className="text-green-600 text-xs">
+                                        (Correct)
+                                      </span>
                                     )}
                                   </div>
                                 ))}
@@ -770,7 +824,11 @@ const fetchAvailableQuestions = async () => {
                 onClick={addSelectedQuestions}
                 disabled={selectedQuestionIds.size === 0}
               >
-                Add {selectedQuestionIds.size > 0 ? `${selectedQuestionIds.size} ` : ''}Question(s)
+                Add{" "}
+                {selectedQuestionIds.size > 0
+                  ? `${selectedQuestionIds.size} `
+                  : ""}
+                Question(s)
               </Button>
             </div>
           </div>

@@ -128,10 +128,12 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [openFolders, setOpenFolders] = useState({});
+  const [questionBankCount, setQuestionBankCount] = useState(0);
 
   useEffect(() => {
     if (activeTab === "dashboard") {
       fetchTests();
+      fetchQuestionBankCount();
     }
   }, [activeTab]);
 
@@ -188,6 +190,28 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
       console.error("Error fetching tests:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchQuestionBankCount = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/tests/questions/all?source=question-bank`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setQuestionBankCount(data.questions?.length || 0);
+      } else {
+        setQuestionBankCount(0);
+      }
+    } catch (err) {
+      console.error("Error fetching question bank count:", err);
+      setQuestionBankCount(0);
     }
   };
 
@@ -369,8 +393,8 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
           gradient="bg-gradient-to-br from-yellow-500 to-yellow-600"
         />
         <StatsCard
-          label="Total Questions"
-          value={stats.totalQuestions}
+          label="Total Questions in Bank"
+          value={questionBankCount}
           icon={Target}
           gradient="bg-gradient-to-br from-purple-500 to-purple-600"
         />
