@@ -3,7 +3,7 @@ import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard/Dashboard";
 import CreateTest from "./components/CreateTest";
 import EditTest from "./components/EditTest";
-import TakeTest from "./components/TakeTest";
+import TakeTest from "./components/TakeTest/TakeTest";
 import AdminResults from "./components/AdminResults";
 import ProctoringEvents from "./components/ProctoringEvents";
 import InvitationAccept from "./components/AcceptInvitation";
