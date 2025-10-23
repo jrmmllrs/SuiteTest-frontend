@@ -262,8 +262,13 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
 
   const testsByDepartment = shouldUseFolders
     ? filteredTests.reduce((acc, test) => {
-        // Use department_name from backend, fallback to "Uncategorized"
         const deptName = test.department_name || "Uncategorized";
+
+        // 🔒 HIDE Question Bank from dashboard folders
+        if (deptName.toLowerCase() === "question bank") {
+          return acc; // Skip this test
+        }
+
         if (!acc[deptName]) {
           acc[deptName] = [];
         }
@@ -356,10 +361,17 @@ function DashboardContent({ user, token, onNavigate, activeTab }) {
               <ListChecks size={18} />
               Question Types
             </button>
+            {/* 🆕 NEW: Question Bank button */}
+            <button
+              onClick={() => onNavigate("question-bank")}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Target size={18} />
+              Question Bank
+            </button>
           </div>
         </div>
       )}
-
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatsCard

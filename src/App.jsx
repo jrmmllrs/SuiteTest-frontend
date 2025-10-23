@@ -12,6 +12,7 @@ import QuestionTypeManager from "./components/QuestionTypeManager";
 import ViewTest from "./components/ViewTest";
 import TestResults from "./components/TestResults";
 import UserManagement from "./components/UserManagement";
+import QuestionBank from "./components/Dashboard/QuestionBank"; // 🆕 Added
 import { VIEWS } from "./constants/views";
 import { API_BASE_URL } from "./constants";
 import { useAuth } from "./hooks/useAuth";
@@ -153,6 +154,12 @@ export default function App() {
         setActiveTab("question-type-manager");
         break;
       
+      // 🆕 Added Question Bank navigation
+      case "question-bank":
+        setCurrentView(VIEWS.QUESTION_BANK);
+        setActiveTab("question-bank");
+        break;
+      
       case "settings":
         // You might want to add a settings view later
         setCurrentView(VIEWS.DASHBOARD);
@@ -203,6 +210,12 @@ export default function App() {
       case VIEWS.QUESTION_TYPE_MANAGER:
         setCurrentView(VIEWS.QUESTION_TYPE_MANAGER);
         setActiveTab("question-type-manager");
+        break;
+      
+      // 🆕 Added Question Bank VIEWS constant case
+      case VIEWS.QUESTION_BANK:
+        setCurrentView(VIEWS.QUESTION_BANK);
+        setActiveTab("question-bank");
         break;
       
       case VIEWS.ANSWER_REVIEW:
@@ -423,6 +436,19 @@ export default function App() {
       {currentView === VIEWS.INVITATIONS_MANAGER && (
         <InvitationsManagerView
           testId={selectedTestId}
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      )}
+
+      {/* 🆕 Added Question Bank view */}
+      {currentView === VIEWS.QUESTION_BANK && (
+        <QuestionBank
           token={token}
           user={user}
           onBack={() => handleNavigate(VIEWS.DASHBOARD)}

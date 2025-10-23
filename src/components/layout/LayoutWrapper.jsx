@@ -12,6 +12,7 @@ import {
   TrendingUp,
   ListChecks,
   Mail,
+  Target,
 } from "lucide-react";
 
 // Sidebar Component
@@ -38,6 +39,11 @@ function Sidebar({
           icon: ListChecks,
           label: "Question Types",
         },
+        {
+          id: "question-bank",
+          icon: Target, // ← import this icon from lucide-react
+          label: "Question Bank",
+        },
         { id: "settings", icon: Settings, label: "Settings" },
       ];
     } else if (user?.role === "employer") {
@@ -45,6 +51,11 @@ function Sidebar({
         { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
         { id: "tests", icon: FileText, label: "Tests" },
         { id: "invitations", icon: Mail, label: "Invitations" },
+        {
+          id: "question-bank",
+          icon: Target,
+          label: "Question Bank",
+        },
         { id: "settings", icon: Settings, label: "Settings" },
       ];
     } else {
@@ -172,14 +183,14 @@ function Sidebar({
 }
 
 // Layout Wrapper Component
-export default function LayoutWrapper({ 
-  user, 
-  token, 
-  onLogout, 
+export default function LayoutWrapper({
+  user,
+  token,
+  onLogout,
   onNavigate,
   activeTab,
   setActiveTab,
-  children 
+  children,
 }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [userDepartment, setUserDepartment] = useState(null);
@@ -229,7 +240,9 @@ export default function LayoutWrapper({
                 <Menu size={24} />
               </button>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{getPageTitle()}</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {getPageTitle()}
+                </h2>
                 <p className="text-xs text-gray-500">
                   Greetings, {user?.name || user?.email?.split("@")[0]}!
                 </p>
@@ -243,9 +256,7 @@ export default function LayoutWrapper({
           </div>
         </header>
 
-        <main className="p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

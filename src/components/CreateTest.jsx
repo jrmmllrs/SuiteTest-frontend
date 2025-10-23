@@ -40,6 +40,10 @@ export default function CreateTest({ user, token, onBack }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterTest, setFilterTest] = useState("all");
+  const [showTestImport, setShowTestImport] = useState(false);
+  const [availableTests, setAvailableTests] = useState([]);
+  const [loadingTests, setLoadingTests] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState({
     question_text: "",
     question_type: "multiple_choice",
@@ -119,6 +123,89 @@ export default function CreateTest({ user, token, onBack }) {
     } finally {
       setLoadingQuestions(false);
     }
+  };
+
+  const fetchAvailableTests = async () => {
+    setLoadingTests(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/tests/my-tests`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const questionBankTests = (data.tests || []).filter(
+          (test) => test.department_name === "Question Bank"
+        );
+        setAvailableTests(questionBankTests);
+      } else {
+        setMessage({ type: "error", text: "Failed to load tests" });
+      }
+    } catch (error) {
+      console.error("Error fetching tests:", error);
+      setMessage({ type: "error", text: "Failed to load tests" });
+    } finally {
+      setLoadingTests(false);
+    }
+  };
+
+  const fetchTestDetails = async (testId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tests/${testId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      if (data.success) return data.test;
+      return null;
+    } catch (error) {
+      console.error("Error fetching test details:", error);
+      return null;
+    }
+  };
+
+  const openTestImport = () => {
+    setShowTestImport(true);
+    fetchAvailableTests();
+  };
+
+  const closeTestImport = () => {
+    setShowTestImport(false);
+    setSelectedTest(null);
+  };
+
+  const importTest = async (test) => {
+    const testDetails = await fetchTestDetails(test.id);
+
+    if (!testDetails) {
+      setMessage({ type: "error", text: "Failed to load test details" });
+      return;
+    }
+
+    setTestData((prev) => ({
+      ...prev,
+      title: `${testDetails.title} (Copy)`,
+      description: testDetails.description || "",
+      time_limit: testDetails.time_limit || 30,
+      test_type: testDetails.test_type || "standard",
+    }));
+
+    const importedQuestions = testDetails.questions.map((q) => ({
+      question_text: q.question_text,
+      question_type: q.question_type,
+      options: q.options || [],
+      correct_answer: q.correct_answer || "",
+      explanation: q.explanation || "",
+    }));
+
+    setQuestions([...questions, ...importedQuestions]);
+    closeTestImport();
+
+    setMessage({
+      type: "success",
+      text: `Imported ${importedQuestions.length} questions from "${testDetails.title}"`,
+    });
   };
 
   const handleTestDataChange = (e) => {
@@ -347,15 +434,16 @@ export default function CreateTest({ user, token, onBack }) {
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || q.question_type === filterType;
-    const matchesTest = filterTest === "all" || String(q.test_id) === String(filterTest);
+    const matchesTest =
+      filterTest === "all" || String(q.test_id) === String(filterTest);
     return matchesSearch && matchesType && matchesTest;
   });
 
   // Get unique tests for the filter dropdown
   const uniqueTests = availableQuestions
-    .filter(q => q.test_title && q.test_id)
+    .filter((q) => q.test_title && q.test_id)
     .reduce((acc, q) => {
-      const existing = acc.find(t => t.id === q.test_id);
+      const existing = acc.find((t) => t.id === q.test_id);
       if (!existing) {
         acc.push({ id: q.test_id, title: q.test_title });
       }
@@ -556,12 +644,32 @@ export default function CreateTest({ user, token, onBack }) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select a department</option>
-                    {departments.map((dept) => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.department_name}
-                      </option>
-                    ))}
+
+                    <optgroup label="Departments">
+                      {departments
+                        .filter(
+                          (dept) => dept.department_name !== "Question Bank"
+                        )
+                        .map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.department_name}
+                          </option>
+                        ))}
+                    </optgroup>
+
+                    <optgroup label="Other">
+                      {departments
+                        .filter(
+                          (dept) => dept.department_name === "Question Bank"
+                        )
+                        .map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.department_name}
+                          </option>
+                        ))}
+                    </optgroup>
                   </select>
+
                   <p className="text-xs text-gray-500 mt-1">
                     This test will only be visible to candidates in the selected
                     department
@@ -642,6 +750,13 @@ export default function CreateTest({ user, token, onBack }) {
               </h2>
               {!showQuestionForm && (
                 <div className="flex gap-2">
+                  <Button
+                    onClick={openTestImport}
+                    icon={FileText}
+                    variant="secondary"
+                  >
+                    Import Test
+                  </Button>
                   <Button
                     onClick={openQuestionBank}
                     icon={Library}
@@ -808,7 +923,10 @@ export default function CreateTest({ user, token, onBack }) {
                               {question.test_title && (
                                 <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded flex items-center gap-1">
                                   <FileText size={12} />
-                                  <span className="font-medium">Test:</span> {question.test_title}
+                                  <span className="font-medium">
+                                    Test:
+                                  </span>{" "}
+                                  {question.test_title}
                                 </span>
                               )}
                             </div>
@@ -857,6 +975,94 @@ export default function CreateTest({ user, token, onBack }) {
                   ? `${selectedQuestionIds.size} `
                   : ""}
                 Question(s)
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Import Test Modal */}
+      {showTestImport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Import Test from Question Bank
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Import all questions from an existing test
+                  </p>
+                </div>
+                <button
+                  onClick={closeTestImport}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingTests ? (
+                <div className="text-center py-8">
+                  <div className="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-gray-600">Loading tests...</p>
+                </div>
+              ) : availableTests.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                    <FileText size={32} className="text-gray-400" />
+                  </div>
+                  <p className="text-gray-900 font-semibold mb-2">
+                    No tests found in Question Bank
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Create tests in the Question Bank department first
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {availableTests.map((test) => (
+                    <div
+                      key={test.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1">
+                            {test.title}
+                          </h3>
+                          {test.description && (
+                            <p className="text-sm text-gray-600 mb-3">
+                              {test.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <FileText size={16} />
+                              <span>{test.question_count || 0} questions</span>
+                            </div>
+                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">
+                              {test.test_type === "pdf_based"
+                                ? "PDF Based"
+                                : "Standard"}
+                            </span>
+                          </div>
+                        </div>
+                        <Button onClick={() => importTest(test)} size="sm">
+                          Import
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end">
+              <Button variant="secondary" onClick={closeTestImport}>
+                Close
               </Button>
             </div>
           </div>

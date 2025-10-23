@@ -14,6 +14,7 @@ export const VIEWS = {
   QUESTION_TYPE_MANAGER: "question-type-manager",
   USER_MANAGEMENT: "user-management",
   INVITATIONS_MANAGER: 'invitations-manager',
+  QUESTION_BANK: "question-bank"
 };
 
 // ⚠️ IMPORTANT: Your backend uses /api prefix for ALL routes
