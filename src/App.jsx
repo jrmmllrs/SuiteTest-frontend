@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard/Dashboard";
-import CreateTest from "./components/CreateTest";
+import CreateTest from "./components/CreateTest/index";
 import EditTest from "./components/EditTest";
 import TakeTest from "./components/TakeTest/TakeTest";
 import AdminResults from "./components/AdminResults";
