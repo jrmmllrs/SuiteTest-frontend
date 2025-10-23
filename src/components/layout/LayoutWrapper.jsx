@@ -13,6 +13,7 @@ import {
   ListChecks,
   Mail,
   Target,
+  Building2, // 🆕 Added for Department Management
 } from "lucide-react";
 
 // Sidebar Component
@@ -33,6 +34,7 @@ function Sidebar({
         { id: "tests", icon: FileText, label: "Tests" },
         { id: "invitations", icon: Mail, label: "Invitations" },
         { id: "user-management", icon: Users, label: "User Management" },
+        { id: "department-management", icon: Building2, label: "Departments" }, // 🆕 Added
         { id: "admin-results", icon: TrendingUp, label: "All Results" },
         {
           id: "question-type-manager",
@@ -41,7 +43,7 @@ function Sidebar({
         },
         {
           id: "question-bank",
-          icon: Target, // ← import this icon from lucide-react
+          icon: Target,
           label: "Question Bank",
         },
         { id: "settings", icon: Settings, label: "Settings" },
@@ -208,8 +210,10 @@ export default function LayoutWrapper({
       tests: "Tests",
       invitations: "Invitations",
       "user-management": "User Management",
+      "department-management": "Department Management", // 🆕 Added
       "admin-results": "All Results",
       "question-type-manager": "Question Types",
+      "question-bank": "Question Bank", // 🆕 Added
       settings: "Settings",
       "create-test": "Create Test",
     };

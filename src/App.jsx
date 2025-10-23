@@ -19,6 +19,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useInvitation } from "./hooks/useInvitation";
 import LoadingScreen from "./components/LoadingScreen";
 import InvitationsManagerView from "./components/InvitationManagerView";
+import DepartmentManagement from "./components/DepartmentManagement";
 
 export default function App() {
   const [currentView, setCurrentView] = useState(VIEWS.LOADING);
@@ -58,31 +59,31 @@ export default function App() {
 
   const checkForActiveTest = async () => {
     if (checkingActiveTest) return; // Prevent duplicate checks
-    
+
     setCheckingActiveTest(true);
     try {
       const response = await fetch(`${API_BASE_URL}/tests/active-test`, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success && data.activeTest) {
-        console.log('Found active test, redirecting...', data.activeTest);
-        
+        console.log("Found active test, redirecting...", data.activeTest);
+
         // Automatically navigate to the active test
         setSelectedTestId(data.activeTest.test_id);
         setCurrentView(VIEWS.TAKE_TEST);
         setActiveTab("tests");
-        
+
         // Optional: Show a notification
-        showNotification('info', 'Resuming your active test...');
+        showNotification("info", "Resuming your active test...");
       }
     } catch (error) {
-      console.error('Error checking for active test:', error);
+      console.error("Error checking for active test:", error);
     } finally {
       setCheckingActiveTest(false);
     }
@@ -116,136 +117,146 @@ export default function App() {
 
   const handleNavigate = (view, testId = null, candidateId = null) => {
     console.log("handleNavigate called with:", { view, testId, candidateId });
-    
+
     setSelectedTestId(testId);
     setSelectedCandidateId(candidateId);
 
     // ✅ FIXED: Handle string-based navigation from sidebar
     // Map sidebar navigation IDs to appropriate views and tabs
-    switch(view) {
+    switch (view) {
       case "dashboard":
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("dashboard");
         break;
-      
+
       case "tests":
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("tests");
         break;
-      
+
       case "invitations":
         // Keep user in dashboard view but change the active tab
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("invitations");
         break;
-      
+
       case "user-management":
         setCurrentView(VIEWS.USER_MANAGEMENT);
         setActiveTab("user-management");
         break;
-      
+
       case "admin-results":
         setCurrentView(VIEWS.ADMIN_RESULTS);
         setActiveTab("admin-results");
         break;
-      
+
       case "question-type-manager":
         setCurrentView(VIEWS.QUESTION_TYPE_MANAGER);
         setActiveTab("question-type-manager");
         break;
-      
+
       // 🆕 Added Question Bank navigation
       case "question-bank":
         setCurrentView(VIEWS.QUESTION_BANK);
         setActiveTab("question-bank");
         break;
-      
+
       case "settings":
         // You might want to add a settings view later
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("settings");
         break;
-      
+
+      case "department-management":
+        setCurrentView(VIEWS.DEPARTMENT_MANAGEMENT);
+        setActiveTab("department-management");
+        break;
+
+      case VIEWS.DEPARTMENT_MANAGEMENT:
+        setCurrentView(VIEWS.DEPARTMENT_MANAGEMENT);
+        setActiveTab("department-management");
+        break;
+
       // Handle VIEWS constants (for programmatic navigation)
       case VIEWS.DASHBOARD:
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("dashboard");
         break;
-      
+
       case VIEWS.CREATE_TEST:
         setCurrentView(VIEWS.CREATE_TEST);
         setActiveTab("tests");
         break;
-      
+
       case VIEWS.EDIT_TEST:
         setCurrentView(VIEWS.EDIT_TEST);
         setActiveTab("tests");
         break;
-      
+
       case VIEWS.VIEW_TEST:
         setCurrentView(VIEWS.VIEW_TEST);
         setActiveTab("tests");
         break;
-      
+
       case VIEWS.TEST_RESULTS:
         setCurrentView(VIEWS.TEST_RESULTS);
         setActiveTab("tests");
         break;
-      
+
       case VIEWS.TAKE_TEST:
         setCurrentView(VIEWS.TAKE_TEST);
         setActiveTab("tests");
         break;
-      
+
       case VIEWS.USER_MANAGEMENT:
         setCurrentView(VIEWS.USER_MANAGEMENT);
         setActiveTab("user-management");
         break;
-      
+
       case VIEWS.ADMIN_RESULTS:
         setCurrentView(VIEWS.ADMIN_RESULTS);
         setActiveTab("admin-results");
         break;
-      
+
       case VIEWS.QUESTION_TYPE_MANAGER:
         setCurrentView(VIEWS.QUESTION_TYPE_MANAGER);
         setActiveTab("question-type-manager");
         break;
-      
+
       // 🆕 Added Question Bank VIEWS constant case
       case VIEWS.QUESTION_BANK:
         setCurrentView(VIEWS.QUESTION_BANK);
         setActiveTab("question-bank");
         break;
-      
+
       case VIEWS.ANSWER_REVIEW:
         setCurrentView(VIEWS.ANSWER_REVIEW);
         setActiveTab("admin-results");
         break;
-      
+
       case VIEWS.PROCTORING_EVENTS:
         setCurrentView(VIEWS.PROCTORING_EVENTS);
         setActiveTab("admin-results");
         break;
-      
+
       case VIEWS.INVITATIONS_MANAGER:
         setCurrentView(VIEWS.INVITATIONS_MANAGER);
         setActiveTab("tests");
         break;
-      
+
       case VIEWS.INVITATION_ACCEPT:
         setCurrentView(VIEWS.INVITATION_ACCEPT);
         if (invitationToken) {
           window.location.hash = `/invitation/${invitationToken}`;
         }
         break;
-      
+
       case VIEWS.AUTH:
         setCurrentView(VIEWS.AUTH);
         setActiveTab("dashboard");
         window.location.hash = "";
         break;
-      
+
       default:
         console.warn("Unknown navigation view:", view);
         setCurrentView(VIEWS.DASHBOARD);
@@ -275,7 +286,9 @@ export default function App() {
       <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Checking for active tests...</p>
+          <p className="text-gray-600 font-medium">
+            Checking for active tests...
+          </p>
         </div>
       </div>
     );
@@ -432,7 +445,7 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-      
+
       {currentView === VIEWS.INVITATIONS_MANAGER && (
         <InvitationsManagerView
           testId={selectedTestId}
@@ -449,6 +462,18 @@ export default function App() {
       {/* 🆕 Added Question Bank view */}
       {currentView === VIEWS.QUESTION_BANK && (
         <QuestionBank
+          token={token}
+          user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      )}
+
+      {currentView === VIEWS.DEPARTMENT_MANAGEMENT && (
+        <DepartmentManagement
           token={token}
           user={user}
           onBack={() => handleNavigate(VIEWS.DASHBOARD)}
