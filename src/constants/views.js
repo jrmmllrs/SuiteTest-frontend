@@ -2,6 +2,7 @@ export const VIEWS = {
   LOADING: "loading",
   AUTH: "auth",
   DASHBOARD: "dashboard",
+  TESTS: "tests", // 🆕 Added
   CREATE_TEST: "create-test",
   EDIT_TEST: "edit-test",
   VIEW_TEST: "view-test",
@@ -13,10 +14,9 @@ export const VIEWS = {
   INVITATION_ACCEPT: "invitation-accept",
   QUESTION_TYPE_MANAGER: "question-type-manager",
   USER_MANAGEMENT: "user-management",
-  INVITATIONS_MANAGER: 'invitations-manager',
+  INVITATIONS_MANAGER: "invitations-manager",
   QUESTION_BANK: "question-bank",
-  DEPARTMENT_MANAGEMENT: 'department-management' // 🆕 New view
-
+  DEPARTMENT_MANAGEMENT: "department-management", // 🆕 New view
 };
 
 // ⚠️ IMPORTANT: Your backend uses /api prefix for ALL routes

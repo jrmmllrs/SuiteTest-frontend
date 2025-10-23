@@ -1,6 +1,8 @@
+// COMPLETE UPDATED App.jsx for reference:
 import React, { useState, useEffect } from "react";
 import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard/Dashboard";
+import Tests from "./components/Dashboard/Tests";
 import CreateTest from "./components/CreateTest/index";
 import EditTest from "./components/EditTest";
 import TakeTest from "./components/TakeTest/TakeTest";
@@ -12,7 +14,7 @@ import QuestionTypeManager from "./components/QuestionTypeManager";
 import ViewTest from "./components/ViewTest";
 import TestResults from "./components/TestResults";
 import UserManagement from "./components/UserManagement";
-import QuestionBank from "./components/Dashboard/QuestionBank"; // 🆕 Added
+import QuestionBank from "./components/Dashboard/QuestionBank";
 import { VIEWS } from "./constants/views";
 import { API_BASE_URL } from "./constants";
 import { useAuth } from "./hooks/useAuth";
@@ -36,7 +38,6 @@ export default function App() {
     initializeApp();
   }, []);
 
-  // Check for active test when user is authenticated
   useEffect(() => {
     if (token && user && currentView === VIEWS.DASHBOARD) {
       checkForActiveTest();
@@ -58,7 +59,7 @@ export default function App() {
   };
 
   const checkForActiveTest = async () => {
-    if (checkingActiveTest) return; // Prevent duplicate checks
+    if (checkingActiveTest) return;
 
     setCheckingActiveTest(true);
     try {
@@ -73,13 +74,9 @@ export default function App() {
 
       if (data.success && data.activeTest) {
         console.log("Found active test, redirecting...", data.activeTest);
-
-        // Automatically navigate to the active test
         setSelectedTestId(data.activeTest.test_id);
         setCurrentView(VIEWS.TAKE_TEST);
         setActiveTab("tests");
-
-        // Optional: Show a notification
         showNotification("info", "Resuming your active test...");
       }
     } catch (error) {
@@ -90,8 +87,6 @@ export default function App() {
   };
 
   const showNotification = (type, message) => {
-    // You can implement a toast notification here
-    // For now, just console log
     console.log(`[${type.toUpperCase()}] ${message}`);
   };
 
@@ -121,8 +116,6 @@ export default function App() {
     setSelectedTestId(testId);
     setSelectedCandidateId(candidateId);
 
-    // ✅ FIXED: Handle string-based navigation from sidebar
-    // Map sidebar navigation IDs to appropriate views and tabs
     switch (view) {
       case "dashboard":
         setCurrentView(VIEWS.DASHBOARD);
@@ -130,12 +123,12 @@ export default function App() {
         break;
 
       case "tests":
-        setCurrentView(VIEWS.DASHBOARD);
+      case VIEWS.TESTS: // 🆕 Added
+        setCurrentView(VIEWS.TESTS);
         setActiveTab("tests");
         break;
 
       case "invitations":
-        // Keep user in dashboard view but change the active tab
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("invitations");
         break;
@@ -155,14 +148,12 @@ export default function App() {
         setActiveTab("question-type-manager");
         break;
 
-      // 🆕 Added Question Bank navigation
       case "question-bank":
         setCurrentView(VIEWS.QUESTION_BANK);
         setActiveTab("question-bank");
         break;
 
       case "settings":
-        // You might want to add a settings view later
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("settings");
         break;
@@ -177,7 +168,6 @@ export default function App() {
         setActiveTab("department-management");
         break;
 
-      // Handle VIEWS constants (for programmatic navigation)
       case VIEWS.DASHBOARD:
         setCurrentView(VIEWS.DASHBOARD);
         setActiveTab("dashboard");
@@ -223,7 +213,6 @@ export default function App() {
         setActiveTab("question-type-manager");
         break;
 
-      // 🆕 Added Question Bank VIEWS constant case
       case VIEWS.QUESTION_BANK:
         setCurrentView(VIEWS.QUESTION_BANK);
         setActiveTab("question-bank");
@@ -280,7 +269,6 @@ export default function App() {
     return <LoadingScreen />;
   }
 
-  // Show loading overlay while checking for active test
   if (checkingActiveTest) {
     return (
       <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
@@ -310,6 +298,18 @@ export default function App() {
 
       {currentView === VIEWS.DASHBOARD && (
         <Dashboard
+          user={user}
+          token={token}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      )}
+
+      {/* 🆕 NEW TESTS VIEW */}
+      {currentView === VIEWS.TESTS && (
+        <Tests
           user={user}
           token={token}
           onLogout={handleLogout}
@@ -459,7 +459,6 @@ export default function App() {
         />
       )}
 
-      {/* 🆕 Added Question Bank view */}
       {currentView === VIEWS.QUESTION_BANK && (
         <QuestionBank
           token={token}
