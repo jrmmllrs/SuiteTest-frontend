@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Save } from "lucide-react";
+import { Save, Sparkles, Target, CheckCircle } from "lucide-react";
 import { API_BASE_URL } from "../../constants";
 import { NavBar } from "../ui/Navbar";
 import { Alert } from "../ui/Alert";
@@ -17,6 +17,7 @@ export default function CreateTest({ user, token, onBack }) {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeStep, setActiveStep] = useState(1); // 1: Details, 2: Questions
 
   const {
     testData,
@@ -170,63 +171,162 @@ export default function CreateTest({ user, token, onBack }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[#0697b2] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-600 text-sm">Loading...</p>
+        </div>
       </div>
     );
   }
 
+  const canProceedToQuestions = testData.title.trim() && testData.time_limit > 0;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar title="Create New Test" user={user} onBack={onBack} />
+      <NavBar title="Create Test" user={user} onBack={onBack} />
 
-      <div className="py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          <Alert
-            type={message.type}
-            message={message.text}
-            onClose={() => setMessage({ type: "", text: "" })}
-          />
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Progress Steps */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between max-w-2xl mx-auto">
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                activeStep === 1 
+                  ? 'bg-[#0697b2] text-white' 
+                  : 'bg-gray-100 text-gray-600'
+              }`}>
+                1
+              </div>
+              <span className={`font-medium ${activeStep === 1 ? 'text-[#0697b2]' : 'text-gray-600'}`}>
+                Test Details
+              </span>
+            </div>
+            
+            <div className="w-12 h-0.5 bg-gray-200"></div>
+            
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                activeStep === 2 
+                  ? 'bg-[#0697b2] text-white' 
+                  : 'bg-gray-100 text-gray-600'
+              }`}>
+                2
+              </div>
+              <span className={`font-medium ${activeStep === 2 ? 'text-[#0697b2]' : 'text-gray-600'}`}>
+                Questions ({questions.length})
+              </span>
+            </div>
+          </div>
+        </div>
 
-          <TestDetailsForm
-            testData={testData}
-            departments={departments}
-            handleTestDataChange={handleTestDataChange}
-            handlePdfUrlChange={handlePdfUrlChange}
-            clearPdfAttachment={clearPdfAttachment}
-          />
+        <Alert
+          type={message.type}
+          message={message.text}
+          onClose={() => setMessage({ type: "", text: "" })}
+        />
 
-          <QuestionsSection
-            questions={questions}
-            currentQuestion={currentQuestion}
-            editingIndex={editingIndex}
-            showQuestionForm={showQuestionForm}
-            questionTypes={questionTypes}
-            onShowQuestionForm={setShowQuestionForm}
-            onOpenQuestionBank={openQuestionBank}
-            onOpenTestImport={openTestImport}
-            onQuestionChange={handleQuestionChange}
-            onQuestionTypeChange={handleQuestionTypeChange}
-            onOptionChange={handleOptionChange}
-            onAddOption={addOption}
-            onRemoveOption={removeOption}
-            onSaveQuestion={saveQuestion}
-            onCancelQuestion={cancelQuestionForm}
-            onEditQuestion={editQuestion}
-            onDeleteQuestion={deleteQuestion}
-          />
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Main Content */}
+          <div className="xl:col-span-3 space-y-6">
+            {activeStep === 1 ? (
+              <TestDetailsForm
+                testData={testData}
+                departments={departments}
+                handleTestDataChange={handleTestDataChange}
+                handlePdfUrlChange={handlePdfUrlChange}
+                clearPdfAttachment={clearPdfAttachment}
+                onNext={() => setActiveStep(2)}
+                canProceed={canProceedToQuestions}
+              />
+            ) : (
+              <QuestionsSection
+                questions={questions}
+                currentQuestion={currentQuestion}
+                editingIndex={editingIndex}
+                showQuestionForm={showQuestionForm}
+                questionTypes={questionTypes}
+                onShowQuestionForm={setShowQuestionForm}
+                onOpenQuestionBank={openQuestionBank}
+                onOpenTestImport={openTestImport}
+                onQuestionChange={handleQuestionChange}
+                onQuestionTypeChange={handleQuestionTypeChange}
+                onOptionChange={handleOptionChange}
+                onAddOption={addOption}
+                onRemoveOption={removeOption}
+                onSaveQuestion={saveQuestion}
+                onCancelQuestion={cancelQuestionForm}
+                onEditQuestion={editQuestion}
+                onDeleteQuestion={deleteQuestion}
+                onBack={() => setActiveStep(1)}
+              />
+            )}
+          </div>
 
-          <div className="flex justify-end gap-4">
-            <Button variant="secondary" onClick={onBack}>
-              Cancel
-            </Button>
-            <Button
-              variant="success"
-              onClick={saveTest}
-              disabled={saving}
-              icon={Save}
-            >
-              {saving ? "Saving..." : "Create Test"}
-            </Button>
+          {/* Sidebar - Compact */}
+          <div className="space-y-4">
+            {/* Quick Stats */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Sparkles size={16} className="text-[#0697b2]" />
+                Quick Stats
+              </h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Questions</span>
+                  <span className="font-semibold">{questions.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Time Limit</span>
+                  <span className="font-semibold">{testData.time_limit}m</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Type</span>
+                  <span className="font-semibold capitalize">{testData.test_type}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Check */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <h3 className="font-semibold text-gray-900 mb-3">Ready Check</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle size={14} className={testData.title ? "text-green-500" : "text-gray-300"} />
+                  <span className={testData.title ? "text-gray-700" : "text-gray-400"}>Test title</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle size={14} className={questions.length > 0 ? "text-green-500" : "text-gray-300"} />
+                  <span className={questions.length > 0 ? "text-gray-700" : "text-gray-400"}>At least 1 question</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle size={14} className={testData.time_limit > 0 ? "text-green-500" : "text-gray-300"} />
+                  <span className={testData.time_limit > 0 ? "text-gray-700" : "text-gray-400"}>Time limit set</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <Button
+                variant="success"
+                onClick={saveTest}
+                disabled={saving || questions.length === 0}
+                icon={Save}
+                className="w-full justify-center mb-3"
+                size="sm"
+              >
+                {saving ? "Creating..." : "Create Test"}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={onBack}
+                disabled={saving}
+                className="w-full justify-center"
+                size="sm"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       </div>

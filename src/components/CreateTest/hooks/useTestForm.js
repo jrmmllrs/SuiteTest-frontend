@@ -86,6 +86,7 @@ export function useTestForm(token) {
 
   return {
     testData,
+    setTestData, // Added this export
     questionTypes,
     departments,
     handleTestDataChange,

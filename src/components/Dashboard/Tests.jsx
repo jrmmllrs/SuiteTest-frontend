@@ -407,7 +407,6 @@ function TestsContent({ user, token, onNavigate }) {
                 >
                   <option value="name">Sort by Name</option>
                   <option value="date">Sort by Date</option>
-                  <option value="status">Sort by Status</option>
                 </select>
                 <SortAsc
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"

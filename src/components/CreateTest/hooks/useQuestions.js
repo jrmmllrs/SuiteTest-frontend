@@ -141,6 +141,7 @@ export function useQuestions(questionTypes, setMessage) {
 
   return {
     questions,
+    setQuestions, // Added this export
     currentQuestion,
     editingIndex,
     showQuestionForm,
