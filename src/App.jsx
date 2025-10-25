@@ -22,6 +22,7 @@ import { useInvitation } from "./hooks/useInvitation";
 import LoadingScreen from "./components/LoadingScreen";
 import InvitationsManagerView from "./components/InvitationManagerView";
 import DepartmentManagement from "./components/DepartmentManagement";
+import TestGuides from "./components/TestGuides";
 
 export default function App() {
   const [currentView, setCurrentView] = useState(VIEWS.LOADING);
@@ -126,6 +127,16 @@ export default function App() {
       case VIEWS.TESTS: // 🆕 Added
         setCurrentView(VIEWS.TESTS);
         setActiveTab("tests");
+        break;
+
+      case "test-guide":
+        setCurrentView(VIEWS.TEST_GUIDE);
+        setActiveTab("test-guide");
+        break;
+
+      case VIEWS.TEST_GUIDE:
+        setCurrentView(VIEWS.TEST_GUIDE);
+        setActiveTab("test-guide");
         break;
 
       case "invitations":
@@ -287,7 +298,6 @@ export default function App() {
   return (
     <>
       {currentView === VIEWS.AUTH && <Auth onAuthSuccess={handleAuthSuccess} />}
-
       {currentView === VIEWS.INVITATION_ACCEPT && invitationToken && (
         <InvitationAccept
           token={invitationToken}
@@ -295,7 +305,6 @@ export default function App() {
           onLogin={showLogin}
         />
       )}
-
       {currentView === VIEWS.DASHBOARD && (
         <Dashboard
           user={user}
@@ -306,7 +315,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {/* 🆕 NEW TESTS VIEW */}
       {currentView === VIEWS.TESTS && (
         <Tests
@@ -318,7 +326,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.CREATE_TEST && (
         <CreateTest
           user={user}
@@ -330,7 +337,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.EDIT_TEST && (
         <EditTest
           testId={selectedTestId}
@@ -343,7 +349,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.ADMIN_RESULTS && (
         <AdminResults
           token={token}
@@ -355,7 +360,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.TAKE_TEST && (
         <TakeTest
           user={user}
@@ -366,7 +370,6 @@ export default function App() {
           onNavigate={handleNavigate}
         />
       )}
-
       {currentView === VIEWS.VIEW_TEST && (
         <ViewTest
           testId={selectedTestId}
@@ -380,7 +383,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.TEST_RESULTS && (
         <TestResults
           testId={selectedTestId}
@@ -393,7 +395,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.ANSWER_REVIEW && (
         <AnswerReview
           testId={selectedTestId}
@@ -407,7 +408,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.PROCTORING_EVENTS && (
         <ProctoringEvents
           testId={selectedTestId}
@@ -421,7 +421,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.QUESTION_TYPE_MANAGER && (
         <QuestionTypeManager
           token={token}
@@ -433,7 +432,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.USER_MANAGEMENT && (
         <UserManagement
           token={token}
@@ -445,7 +443,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.INVITATIONS_MANAGER && (
         <InvitationsManagerView
           testId={selectedTestId}
@@ -458,7 +455,6 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.QUESTION_BANK && (
         <QuestionBank
           token={token}
@@ -470,11 +466,21 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
       )}
-
       {currentView === VIEWS.DEPARTMENT_MANAGEMENT && (
         <DepartmentManagement
           token={token}
           user={user}
+          onBack={() => handleNavigate(VIEWS.DASHBOARD)}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      )}
+      {currentView === VIEWS.TEST_GUIDE && (
+        <TestGuides
+          user={user}
+          token={token}
           onBack={() => handleNavigate(VIEWS.DASHBOARD)}
           onLogout={handleLogout}
           onNavigate={handleNavigate}

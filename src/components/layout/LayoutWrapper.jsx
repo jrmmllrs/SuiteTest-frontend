@@ -4,16 +4,15 @@ import {
   LayoutDashboard,
   FileText,
   Users,
-  Settings,
   LogOut,
   Menu,
-  Bell,
   X,
   TrendingUp,
   ListChecks,
   Mail,
   Target,
-  Building2, // 🆕 Added for Department Management
+  Building2,
+  BookOpen,
 } from "lucide-react";
 
 // Sidebar Component
@@ -30,50 +29,67 @@ function Sidebar({
   const getNavItems = () => {
     if (user?.role === "admin") {
       return [
+        // Main Section
+        { type: "section", label: "Main" },
         { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+
+        // Test Management Section
+        { type: "section", label: "Test Management" },
         { id: "tests", icon: FileText, label: "Tests" },
-        { id: "invitations", icon: Mail, label: "Invitations" },
-        { id: "user-management", icon: Users, label: "User Management" },
-        { id: "department-management", icon: Building2, label: "Departments" }, // 🆕 Added
-        { id: "admin-results", icon: TrendingUp, label: "All Results" },
+        { id: "question-bank", icon: Target, label: "Question Bank" },
         {
           id: "question-type-manager",
           icon: ListChecks,
           label: "Question Types",
         },
-        {
-          id: "question-bank",
-          icon: Target,
-          label: "Question Bank",
-        },
-        { id: "settings", icon: Settings, label: "Settings" },
+
+        // Communication Section
+        { type: "section", label: "Communication" },
+        { id: "invitations", icon: Mail, label: "Invitations" },
+
+        // Administration Section
+        { type: "section", label: "Administration" },
+        { id: "user-management", icon: Users, label: "User Management" },
+        { id: "department-management", icon: Building2, label: "Departments" },
+
+        // Analytics Section
+        { type: "section", label: "Analytics" },
+        { id: "admin-results", icon: TrendingUp, label: "All Results" },
       ];
     } else if (user?.role === "employer") {
       return [
+        // Main Section
+        { type: "section", label: "Main" },
         { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+
+        // Test Management Section
+        { type: "section", label: "Test Management" },
         { id: "tests", icon: FileText, label: "Tests" },
+        { id: "question-bank", icon: Target, label: "Question Bank" },
+
+        // Communication Section
+        { type: "section", label: "Communication" },
         { id: "invitations", icon: Mail, label: "Invitations" },
-        {
-          id: "question-bank",
-          icon: Target,
-          label: "Question Bank",
-        },
-        { id: "settings", icon: Settings, label: "Settings" },
       ];
     } else {
+      // Candidate - Includes Test Guide
       return [
-        { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+        // Tests Section
+        { type: "section", label: "Tests" },
         { id: "tests", icon: FileText, label: "My Tests" },
-        { id: "settings", icon: Settings, label: "Settings" },
+        { id: "test-guide", icon: BookOpen, label: "Test Guide" },
       ];
     }
   };
 
   const handleNavClick = (item) => {
+    if (item.type === "section") return;
     setActiveTab(item.id);
     onNavigate(item.id);
     setIsMobileOpen(false);
   };
+
+  const navItems = getNavItems();
 
   return (
     <>
@@ -90,46 +106,29 @@ function Sidebar({
         } lg:translate-x-0`}
       >
         <div className="flex flex-col h-full">
+          {/* Header */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0698b2] to-[#0482a0] flex items-center justify-center">
                 <FileText size={18} className="text-white" />
               </div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                <span
-                  className="text-cyan-600 inline-block"
-                  style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}
-                >
-                  Suite
-                </span>
-                <span
-                  className="text-gray-900 inline-block"
-                  style={{ fontFamily: "'Poppins', 'Inter', sans-serif" }}
-                >
-                  Test
-                </span>
+              <h1 className="text-xl font-bold tracking-tight">
+                <span className="text-cyan-600">Suite</span>
+                <span className="text-gray-900">Test</span>
               </h1>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={onLogout}
-                className="hidden lg:flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Logout"
-              >
-                <LogOut size={16} />
-              </button>
-              <button
-                onClick={() => setIsMobileOpen(false)}
-                className="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100"
-              >
-                <X size={20} />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
           </div>
 
+          {/* User Info */}
           <div className="px-4 py-4 border-b border-gray-100">
-            <div className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0698b2] to-[#0482a0] flex items-center justify-center text-white font-semibold text-sm">
+            <div className="flex items-center space-x-3 p-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0698b2] to-[#0482a0] flex items-center justify-center text-white font-semibold">
                 {user?.name?.charAt(0).toUpperCase() ||
                   user?.email?.charAt(0).toUpperCase()}
               </div>
@@ -137,45 +136,59 @@ function Sidebar({
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {user?.name || user?.email?.split("@")[0]}
                 </p>
-                <p className="text-xs text-gray-500 truncate capitalize">
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-xs text-gray-400 capitalize mt-1">
                   {user?.role}
                 </p>
               </div>
             </div>
             {userDepartment && (
-              <div className="mt-2 flex items-center gap-1.5 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                <span className="text-xs text-gray-700 font-medium truncate">
+              <div className="mt-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
+                <span className="text-xs text-gray-700 font-medium">
                   {userDepartment}
                 </span>
               </div>
             )}
           </div>
 
+          {/* Navigation with Sections */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {getNavItems().map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === item.id
-                    ? "bg-[#0698b2] text-white shadow-sm"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <item.icon size={18} />
-                <span>{item.label}</span>
-              </button>
-            ))}
+            {navItems.map((item, index) => {
+              if (item.type === "section") {
+                return (
+                  <div key={`section-${index}`} className="px-3 py-2">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {item.label}
+                    </h3>
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item)}
+                  className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    activeTab === item.id
+                      ? "bg-[#0698b2] text-white"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <item.icon size={18} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
-          {/* Mobile Logout Button */}
-          <div className="p-3 border-t border-gray-200 lg:hidden">
+          {/* Logout Button */}
+          <div className="p-4 border-t border-gray-200">
             <button
               onClick={onLogout}
-              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <LogOut size={18} />
-              <span>Logout</span>
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
@@ -187,7 +200,6 @@ function Sidebar({
 // Layout Wrapper Component
 export default function LayoutWrapper({
   user,
-  token,
   onLogout,
   onNavigate,
   activeTab,
@@ -207,18 +219,28 @@ export default function LayoutWrapper({
   const getPageTitle = () => {
     const titles = {
       dashboard: "Dashboard",
-      tests: "Tests",
+      tests: user?.role === "candidate" ? "My Tests" : "Tests",
       invitations: "Invitations",
       "user-management": "User Management",
-      "department-management": "Department Management", // 🆕 Added
+      "department-management": "Department Management",
       "admin-results": "All Results",
       "question-type-manager": "Question Types",
-      "question-bank": "Question Bank", // 🆕 Added
-      settings: "Settings",
-      "create-test": "Create Test",
+      "question-bank": "Question Bank",
+      "test-guide": "Test Guide",
     };
-    return titles[activeTab] || "Dashboard";
+    return (
+      titles[activeTab] ||
+      (user?.role === "candidate" ? "My Tests" : "Dashboard")
+    );
   };
+
+  // Set default tab for candidate (since they don't have dashboard)
+  useEffect(() => {
+    if (user?.role === "candidate" && activeTab === "dashboard") {
+      setActiveTab("tests");
+      onNavigate("tests");
+    }
+  }, [user, activeTab, setActiveTab, onNavigate]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -234,8 +256,9 @@ export default function LayoutWrapper({
       />
 
       <div className="lg:pl-64">
+        {/* Clean Header */}
         <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
-          <div className="h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <div className="h-16 px-6 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setIsMobileOpen(true)}
@@ -247,20 +270,15 @@ export default function LayoutWrapper({
                 <h2 className="text-xl font-bold text-gray-900">
                   {getPageTitle()}
                 </h2>
-                <p className="text-xs text-gray-500">
-                  Greetings, {user?.name || user?.email?.split("@")[0]}!
-                </p>
               </div>
             </div>
-
-            <button className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors relative">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
           </div>
         </header>
 
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        {/* Main Content */}
+        <main className="p-6">
+          <div className="max-w-7xl mx-auto">{children}</div>
+        </main>
       </div>
     </div>
   );

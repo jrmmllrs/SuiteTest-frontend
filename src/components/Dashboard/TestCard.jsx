@@ -10,6 +10,9 @@ import {
   Trash2,
   Edit,
   MoreVertical,
+  Play,
+  BarChart3,
+  ChevronRight,
 } from "lucide-react";
 import InvitationsListModal from "./InvitationsListModal";
 import { API_BASE_URL } from "../../constants";
@@ -27,6 +30,9 @@ export default function TestCard({
   const [showInvitations, setShowInvitations] = useState(false);
   const [invitationCount, setInvitationCount] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const primaryColor = "#0697b2";
 
   useEffect(() => {
     if (
@@ -65,24 +71,33 @@ export default function TestCard({
     }
   };
 
+  // FIXED: Added proper error handling and loading state
   const fetchInvitations = async () => {
     if (userRole === "candidate") return;
 
     try {
+      setIsLoading(true);
       const response = await fetch(
         `${API_BASE_URL}/invitations/test/${test.id}/invitations`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       if (data.success) {
-        setInvitations(data.invitations);
+        setInvitations(data.invitations || []);
         setInvitationCount(data.invitations?.length || 0);
         setShowInvitations(true);
       }
     } catch (error) {
       console.error("Error fetching invitations:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -120,175 +135,144 @@ export default function TestCard({
     test.created_by_me && (userRole === "employer" || userRole === "admin");
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white relative">
-      <div className="flex items-start justify-between mb-2">
-        <h4 className="font-semibold text-gray-900 text-lg flex-1 pr-2">
-          {test.title}
-        </h4>
-        <div className="flex items-start gap-2">
-          <div className="flex flex-col gap-1">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 group hover:border-gray-200">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-3">
             {test.test_type === "pdf_based" && (
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                PDF Test
+              <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100">
+                PDF
               </span>
             )}
             {test.target_role === "employer" && (
-              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                For Staff
-              </span>
-            )}
-            {canTakeTest && (
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                Available
+              <span className="px-2 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-medium border border-purple-100">
+                Staff
               </span>
             )}
           </div>
 
-          {/* Actions Menu for Test Creators */}
-          {canManageTest && (
-            <div className="menu-container relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu(!showMenu);
-                }}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
-              >
-                <MoreVertical size={18} />
-              </button>
+          <h3 className="font-semibold text-gray-900 text-lg mb-2 group-hover:text-gray-700 transition-colors">
+            {test.title}
+          </h3>
 
-              {showMenu && (
-                <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
-                  <button
-                    onClick={(e) => handleMenuAction("edit", e)}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                  >
-                    <Edit size={16} />
-                    Edit Test
-                  </button>
-                  <button
-                    onClick={(e) => handleMenuAction("delete", e)}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                  >
-                    <Trash2 size={16} />
-                    Delete Test
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {test.description || "No description provided"}
+          </p>
         </div>
+
+        {/* Actions Menu */}
+        {canManageTest && (
+          <div className="menu-container relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              className="p-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-500"
+            >
+              <MoreVertical size={18} />
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-10 min-w-[140px]">
+                <button
+                  onClick={(e) => handleMenuAction("edit", e)}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                >
+                  <Edit size={16} />
+                  Edit Test
+                </button>
+                <button
+                  onClick={(e) => handleMenuAction("delete", e)}
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                >
+                  <Trash2 size={16} />
+                  Delete Test
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-        {test.description || "No description"}
-      </p>
-
-      <div className="mt-4 space-y-2">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <CheckCircle size={16} className="text-green-600" />
+      {/* Metrics */}
+      <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <CheckCircle size={16} className="text-green-500" />
           <span>{test.question_count || 0} questions</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Clock size={16} className="text-blue-600" />
-          <span>{test.time_limit} minutes</span>
+        <div className="flex items-center gap-2">
+          <Clock size={16} className="text-blue-500" />
+          <span>{test.time_limit} min</span>
         </div>
         {test.department_name && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Building size={16} className="text-purple-600" />
+          <div className="flex items-center gap-2">
+            <Building size={16} className="text-purple-500" />
             <span>{test.department_name}</span>
           </div>
         )}
-        {userRole === "candidate" && test.created_by_name && (
-          <p className="text-xs text-gray-500">By: {test.created_by_name}</p>
-        )}
-        {test.created_by_name && canTakeTest && (
-          <p className="text-xs text-gray-500">
-            Created by: {test.created_by_name}
-          </p>
-        )}
-        {userRole === "candidate" && test.is_completed && (
-          <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
-            <CheckCircle size={16} />
-            <span>Completed</span>
-          </div>
-        )}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200">
+      {/* Creator Info */}
+      {test.created_by_name && (
+        <div className="text-xs text-gray-500 mb-4">
+          Created by {test.created_by_name}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="pt-4 border-t border-gray-100">
         {userRole === "employer" || userRole === "admin" ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {canTakeTest ? (
-              <div className="space-y-2">
-                {test.is_completed ? (
-                  <button
-                    onClick={() =>
-                      handleNavigate("answer-review", test.id, user.id)
-                    }
-                    className="w-full px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
-                  >
-                    <FileText size={16} />
-                    View Answer Review
-                  </button>
-                ) : test.is_in_progress ? (
-                  <button
-                    onClick={() => handleNavigate("take-test", test.id)}
-                    className="w-full px-4 py-2 text-sm text-white bg-yellow-600 rounded hover:bg-yellow-700 font-medium"
-                  >
-                    Continue Test
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleNavigate("take-test", test.id)}
-                    className="w-full px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700 font-medium"
-                  >
-                    Take Test
-                  </button>
-                )}
-              </div>
+              <TestActionButton
+                test={test}
+                user={user}
+                onNavigate={handleNavigate}
+                primaryColor={primaryColor}
+              />
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => handleNavigate("view-test", test.id)}
-                    className="px-3 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200 flex items-center justify-center gap-1"
+                    className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Eye size={14} />
-                    View
+                    <Eye size={16} />
+                    Preview
                   </button>
                   <button
                     onClick={() => handleNavigate("test-results", test.id)}
-                    className="px-3 py-2 text-sm text-blue-700 bg-blue-50 rounded hover:bg-blue-100 flex items-center justify-center gap-1"
+                    className="px-4 py-2.5 text-sm font-medium text-white rounded-lg hover:shadow-md transition-all flex items-center justify-center gap-2"
+                    style={{ backgroundColor: primaryColor }}
                   >
-                    <CheckCircle size={14} />
+                    <BarChart3 size={16} />
                     Results
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => onInvite(test)}
-                    className="px-3 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700 flex items-center justify-center gap-1"
+                    className="px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Mail size={14} />
+                    <Mail size={16} />
                     Invite
                   </button>
                   <button
-                    onClick={() =>
-                      handleNavigate("invitations-manager", test.id)
-                    }
-                    className="px-3 py-2 text-sm text-purple-700 bg-purple-50 rounded hover:bg-purple-100 flex items-center justify-center gap-1"
+                    onClick={fetchInvitations}
+                    disabled={isLoading}
+                    className="px-4 py-2.5 text-sm font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <Users size={14} />
-                    Invites ({invitationCount})
+                    <Users size={16} />
+                    {isLoading ? "Loading..." : `Invites (${invitationCount})`}
                   </button>
                 </div>
 
                 <button
-                  onClick={() =>
-                    handleNavigate("proctoring-events", test.id, null)
-                  }
-                  className="w-full px-3 py-2 text-sm text-red-700 bg-red-50 rounded hover:bg-red-100"
+                  onClick={() => handleNavigate("proctoring-events", test.id)}
+                  className="w-full px-4 py-2.5 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                 >
                   View Proctoring Events
                 </button>
@@ -296,33 +280,12 @@ export default function TestCard({
             )}
           </div>
         ) : (
-          <div className="space-y-2">
-            {test.is_completed ? (
-              <button
-                onClick={() =>
-                  handleNavigate("answer-review", test.id, user.id)
-                }
-                className="w-full px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
-              >
-                <FileText size={16} />
-                View Answer Review
-              </button>
-            ) : test.is_in_progress ? (
-              <button
-                onClick={() => handleNavigate("take-test", test.id)}
-                className="w-full px-4 py-2 text-sm text-white bg-yellow-600 rounded hover:bg-yellow-700 font-medium"
-              >
-                Continue Test
-              </button>
-            ) : (
-              <button
-                onClick={() => handleNavigate("take-test", test.id)}
-                className="w-full px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700 font-medium"
-              >
-                Take Test
-              </button>
-            )}
-          </div>
+          <TestActionButton
+            test={test}
+            user={user}
+            onNavigate={handleNavigate}
+            primaryColor={primaryColor}
+          />
         )}
       </div>
 
@@ -337,3 +300,59 @@ export default function TestCard({
     </div>
   );
 }
+
+// Separate component for test actions to reduce redundancy
+const TestActionButton = ({ test, user, onNavigate, primaryColor }) => {
+  if (test.is_completed) {
+    return (
+      <button
+        onClick={() => onNavigate("answer-review", test.id, user.id)}
+        className="w-full px-4 py-3 text-white rounded-lg hover:shadow-md transition-all flex items-center justify-between group"
+        style={{ backgroundColor: primaryColor }}
+      >
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <FileText size={16} />
+          View Answer Review
+        </div>
+        <ChevronRight
+          size={16}
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+        />
+      </button>
+    );
+  }
+
+  if (test.is_in_progress) {
+    return (
+      <button
+        onClick={() => onNavigate("take-test", test.id)}
+        className="w-full px-4 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center justify-between group"
+      >
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Play size={16} />
+          Continue Test
+        </div>
+        <ChevronRight
+          size={16}
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+        />
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => onNavigate("take-test", test.id)}
+      className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-between group"
+    >
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <Play size={16} />
+        Take Test
+      </div>
+      <ChevronRight
+        size={16}
+        className="opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+    </button>
+  );
+};

@@ -17,6 +17,7 @@ export const VIEWS = {
   INVITATIONS_MANAGER: "invitations-manager",
   QUESTION_BANK: "question-bank",
   DEPARTMENT_MANAGEMENT: "department-management", // 🆕 New view
+  TEST_GUIDE: "test-guide",
 };
 
 // ⚠️ IMPORTANT: Your backend uses /api prefix for ALL routes
