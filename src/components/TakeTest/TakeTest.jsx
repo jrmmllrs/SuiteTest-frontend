@@ -6,11 +6,8 @@ import {
   CheckCircle,
   ChevronRight,
   BookOpen,
-  User,
   Flag,
   Monitor,
-  Zap,
-  Eye,
   Lock,
 } from "lucide-react";
 import { API_BASE_URL } from "../../constants";
@@ -49,6 +46,7 @@ export default function TakeTest({
   const [initialTime, setInitialTime] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState(new Set());
+  const [sidebarTab, setSidebarTab] = useState("stats"); // 'stats' or 'resources'
 
   // Refs
   const answersRef = useRef({});
@@ -437,11 +435,6 @@ export default function TakeTest({
     }
   };
 
-  const calculateProgress = () => {
-    if (!test?.questions) return 0;
-    return Math.round((answeredQuestions.size / test.questions.length) * 100);
-  };
-
   // Render states
   if (showInstructions && !loading && test && proctoringSettings) {
     return (
@@ -474,43 +467,19 @@ export default function TakeTest({
   const totalQuestions = test?.questions?.length || 0;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
   const isAnswered = isCurrentQuestionAnswered();
-  const progress = calculateProgress();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400/20 via-purple-500/20 to-pink-500/20 backdrop-blur-3xl">
+    <div className="min-h-screen bg-quiz-background">
       {/* Header */}
-      <nav className="bg-white/10 backdrop-blur-2xl shadow-2xl border-b border-white/20">
+      <nav className="bg-quiz-primary shadow-quiz border-b-4 border-quiz-accent">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <button onClick={onBack} className="glass-button">
-              ← Back
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                <BookOpen className="text-white" size={24} />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">{test?.title}</h1>
-                <p className="text-white/80 flex items-center gap-2">
-                  <User size={14} />
-                  {user?.name}
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div className="flex items-center gap-4">
             {proctoringSettings?.enable_proctoring && (
-              <div className="glass-proctored">
+              <div className="quiz-proctored-badge">
                 <Shield size={18} />
                 <span>Proctored</span>
               </div>
             )}
-
-            <div className="glass-timer">
-              <Clock size={20} />
-              <span className="font-bold">{formatTime(timeLeft || 0)}</span>
-            </div>
           </div>
         </div>
       </nav>
@@ -519,8 +488,10 @@ export default function TakeTest({
         {/* Messages */}
         {message.text && !submitted && (
           <div
-            className={`glass-message ${
-              message.type === "success" ? "success" : "error"
+            className={`quiz-message ${
+              message.type === "success"
+                ? "quiz-message-success"
+                : "quiz-message-error"
             }`}
           >
             {message.type === "success" ? (
@@ -534,85 +505,48 @@ export default function TakeTest({
 
         {/* Proctoring Warnings */}
         {fullscreenWarning && (
-          <div className="glass-warning">
+          <div className="quiz-warning">
             <Monitor size={20} />
             <span>Please return to fullscreen mode to continue</span>
           </div>
         )}
 
         {testBlocked && (
-          <div className="glass-error">
+          <div className="quiz-error">
             <Lock size={20} />
             <span>Test blocked due to security violations</span>
           </div>
         )}
-
-        {/* Progress Summary */}
-        <div className="glass-card p-8 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Test Progress
-              </h2>
-              <p className="text-white/80 text-lg">{test?.description}</p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-white">{progress}%</div>
-              <div className="text-white/60">Complete</div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm text-white/80">
-              <span>
-                Answered: {answeredQuestions.size} / {totalQuestions}
-              </span>
-              <span>
-                Current: {currentQuestionIndex + 1} of {totalQuestions}
-              </span>
-            </div>
-
-            <div className="w-full bg-white/20 rounded-full h-4 backdrop-blur-sm">
-              <div
-                className="bg-gradient-to-r from-green-400 to-emerald-400 h-4 rounded-full transition-all duration-500 ease-out shadow-inner"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
 
         {/* Test Content */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Main Question Area */}
           <div className="xl:col-span-3">
             {currentQ && (
-              <div className="glass-card overflow-hidden">
+              <div className="quiz-card quiz-question-card overflow-hidden">
                 {/* Question Header */}
-                <div className="bg-gradient-to-r from-blue-500/80 to-purple-600/80 p-8 text-white backdrop-blur-sm">
-                  <div className="flex justify-between items-start mb-6">
+                <div className="bg-quiz-primary p-8 text-white quiz-question-header">
+                  <div className="flex justify-between items-start mb-2">
                     <div className="flex gap-2">
-                      <span className="glass-badge">
+                      <span className="quiz-badge">
                         Question {currentQuestionIndex + 1} of {totalQuestions}
                       </span>
                       {currentQ.points && (
-                        <span className="glass-badge-yellow">
+                        <span className="quiz-badge-points">
                           {currentQ.points} pts
                         </span>
                       )}
                     </div>
                     {!isAnswered && (
-                      <span className="glass-badge-red animate-pulse">
+                      <span className="quiz-badge-required animate-pulse">
                         Required
                       </span>
                     )}
                   </div>
-                  <h3 className="text-2xl font-semibold leading-relaxed">
-                    {currentQ.question_text}
-                  </h3>
                 </div>
 
                 {/* Question Body */}
-                <div className="p-8">
+                <div className="p-8 quiz-question-body">
                   <QuestionCard
                     key={currentQ.id}
                     question={currentQ}
@@ -624,15 +558,15 @@ export default function TakeTest({
                 </div>
 
                 {/* Navigation */}
-                <div className="flex justify-between items-center p-8 border-t border-white/20 bg-white/5">
+                <div className="flex justify-between items-center p-8 border-t border-quiz-light/30 bg-quiz-light/10 quiz-navigation">
                   <div className="text-sm">
                     {isAnswered ? (
-                      <span className="text-green-300 flex items-center gap-2">
+                      <span className="text-quiz-success flex items-center gap-2 quiz-answer-status">
                         <CheckCircle size={16} />
                         Answered
                       </span>
                     ) : (
-                      <span className="text-red-300 flex items-center gap-2">
+                      <span className="text-quiz-error flex items-center gap-2 quiz-answer-status">
                         <AlertTriangle size={16} />
                         Answer required
                       </span>
@@ -643,7 +577,7 @@ export default function TakeTest({
                     <button
                       onClick={handleNextQuestion}
                       disabled={!isAnswered || testBlocked}
-                      className="glass-button-primary"
+                      className="quiz-button-next"
                     >
                       {isAnswered ? "Next Question" : "Answer Required"}
                       <ChevronRight size={20} />
@@ -652,7 +586,7 @@ export default function TakeTest({
                     <button
                       onClick={handleSubmit}
                       disabled={submitting || testBlocked}
-                      className="glass-button-success"
+                      className="quiz-button-submit"
                     >
                       {submitting ? "Submitting..." : "Submit Test"}
                     </button>
@@ -661,92 +595,216 @@ export default function TakeTest({
               </div>
             )}
           </div>
-          {/* In your sidebar section */}
+
+          {/* Sidebar */}
           <div className="xl:col-span-1">
-            <div className="glass-card p-6 sticky top-8">
-              <h3 className="font-bold text-white mb-6 flex items-center gap-2 text-lg">
-                <Flag size={20} />
-                Quick Stats
-              </h3>
-
-              <div className="space-y-4">
-                <div className="glass-stat">
-                  <div className="text-2xl font-bold text-white">
-                    {answeredQuestions.size}
-                  </div>
-                  <div className="text-white/80">Questions Answered</div>
+            {/* Sidebar with Tabs */}
+            <div className="xl:col-span-1">
+              <div className="quiz-card quiz-sidebar overflow-hidden sticky top-8">
+                {/* Tab Headers */}
+                <div className="flex border-b border-quiz-light/30">
+                  <button
+                    onClick={() => setSidebarTab("stats")}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-semibold transition-all duration-300 ${
+                      sidebarTab === "stats"
+                        ? "bg-gradient-to-br from-quiz-primary to-quiz-accent text-white shadow-lg"
+                        : "bg-white text-quiz-dark/60 hover:bg-quiz-light/50 hover:text-quiz-dark"
+                    }`}
+                  >
+                    <Flag size={18} />
+                    <span className="text-sm">Quick Stats</span>
+                  </button>
+                  <button
+                    onClick={() => setSidebarTab("resources")}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-semibold transition-all duration-300 ${
+                      sidebarTab === "resources"
+                        ? "bg-gradient-to-br from-quiz-primary to-quiz-accent text-white shadow-lg"
+                        : "bg-white text-quiz-dark/60 hover:bg-quiz-light/50 hover:text-quiz-dark"
+                    }`}
+                  >
+                    <BookOpen size={18} />
+                    <span className="text-sm">Resources</span>
+                  </button>
                 </div>
 
-                <div className="glass-stat">
-                  <div className="text-2xl font-bold text-white">
-                    {totalQuestions - answeredQuestions.size}
-                  </div>
-                  <div className="text-white/80">Remaining</div>
-                </div>
+                {/* Tab Content */}
+                <div className="p-6">
+                  {/* Stats Tab */}
+                  {sidebarTab === "stats" && (
+                    <div className="space-y-4 animate-fadeIn">
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Answered */}
+                        <div className="quiz-stat group hover:scale-105 transition-transform cursor-pointer">
+                          <div className="flex items-center justify-center w-10 h-10 bg-quiz-primary/10 rounded-full mb-2 mx-auto group-hover:bg-quiz-primary/20 transition-colors">
+                            <CheckCircle
+                              size={20}
+                              className="text-quiz-primary"
+                            />
+                          </div>
+                          <div className="text-2xl font-black text-quiz-accent">
+                            {answeredQuestions.size}
+                          </div>
+                          <div className="text-xs text-quiz-dark/70 font-medium">
+                            Answered
+                          </div>
+                        </div>
 
-                <div className="glass-stat">
-                  <div className="text-white/80">Time Left</div>
-                  <div className="text-lg font-bold text-white">
-                    {formatTime(timeLeft || 0)}
-                  </div>
-                </div>
+                        {/* Remaining */}
+                        <div className="quiz-stat group hover:scale-105 transition-transform cursor-pointer">
+                          <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full mb-2 mx-auto group-hover:bg-orange-200 transition-colors">
+                            <AlertTriangle
+                              size={20}
+                              className="text-orange-500"
+                            />
+                          </div>
+                          <div className="text-2xl font-black text-orange-500">
+                            {totalQuestions - answeredQuestions.size}
+                          </div>
+                          <div className="text-xs text-quiz-dark/70 font-medium">
+                            Remaining
+                          </div>
+                        </div>
 
-                {/* Persistent Proctoring Status */}
-                {proctoringSettings?.enable_proctoring && (
-                  <>
-                    <div
-                      className={`glass-stat ${
-                        violationCount > 0 ? "glass-stat-warning" : ""
-                      }`}
-                    >
-                      <div className="text-white/80">Security Violations</div>
-                      <div className="text-lg font-bold text-white">
-                        {violationCount}
+                        {/* Total Questions */}
+                        <div className="quiz-stat group hover:scale-105 transition-transform cursor-pointer">
+                          <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full mb-2 mx-auto group-hover:bg-purple-200 transition-colors">
+                            <svg
+                              className="w-5 h-5 text-purple-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="text-2xl font-black text-purple-500">
+                            {totalQuestions}
+                          </div>
+                          <div className="text-xs text-quiz-dark/70 font-medium">
+                            Total
+                          </div>
+                        </div>
+
+                        {/* Time Left */}
+                        <div className="quiz-stat group hover:scale-105 transition-transform cursor-pointer">
+                          <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full mb-2 mx-auto group-hover:bg-red-200 transition-colors">
+                            <Clock
+                              size={20}
+                              className="text-red-500 animate-pulse"
+                            />
+                          </div>
+                          <div className="text-lg font-black text-red-500 tabular-nums">
+                            {formatTime(timeLeft || 0)}
+                          </div>
+                          <div className="text-xs text-quiz-dark/70 font-medium">
+                            Time Left
+                          </div>
+                        </div>
                       </div>
-                      {violationCount > 0 && (
-                        <div className="text-xs text-white/60 mt-1">
-                          Persistent across refreshes
+
+                      {/* Proctoring Stats */}
+                      {proctoringSettings?.enable_proctoring && (
+                        <div className="mt-4 pt-4 border-t border-quiz-light/30 space-y-3">
+                          <div className="flex items-center gap-2 text-quiz-dark/80 font-semibold text-sm mb-3">
+                            <Shield size={16} className="text-quiz-primary" />
+                            <span>Security Monitoring</span>
+                          </div>
+
+                          {/* Violations */}
+                          <div
+                            className={`quiz-stat ${
+                              violationCount > 0
+                                ? "quiz-stat-warning border-2 border-yellow-400"
+                                : ""
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs text-quiz-dark/70 font-medium">
+                                Security Violations
+                              </span>
+                              <div
+                                className={`text-xl font-black ${
+                                  violationCount > 0
+                                    ? "text-yellow-600"
+                                    : "text-quiz-accent"
+                                }`}
+                              >
+                                {violationCount}
+                              </div>
+                            </div>
+                            {violationCount > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-yellow-700 mt-1">
+                                <AlertTriangle size={12} />
+                                <span>Persistent warning</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Tab Switches */}
+                          <div
+                            className={`quiz-stat ${
+                              tabSwitchCount > 0
+                                ? "quiz-stat-warning border-2 border-yellow-400"
+                                : ""
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs text-quiz-dark/70 font-medium">
+                                Tab Switches
+                              </span>
+                              <div
+                                className={`text-xl font-black ${
+                                  tabSwitchCount > 0
+                                    ? "text-yellow-600"
+                                    : "text-quiz-accent"
+                                }`}
+                              >
+                                {tabSwitchCount}
+                              </div>
+                            </div>
+                            {tabSwitchCount > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-yellow-700 mt-1">
+                                <AlertTriangle size={12} />
+                                <span>Persistent warning</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Blocked Status */}
+                          {testBlocked && (
+                            <div className="quiz-stat-error border-2 border-red-500 animate-pulse">
+                              <div className="flex items-center justify-center gap-2 mb-2">
+                                <Lock size={20} className="text-red-600" />
+                                <span className="text-lg font-black text-red-600">
+                                  BLOCKED
+                                </span>
+                              </div>
+                              <div className="text-xs text-red-600/90 text-center">
+                                Test blocked due to security violations
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
+                  )}
 
-                    <div
-                      className={`glass-stat ${
-                        tabSwitchCount > 0 ? "glass-stat-warning" : ""
-                      }`}
-                    >
-                      <div className="text-white/80">Tab Switches</div>
-                      <div className="text-lg font-bold text-white">
-                        {tabSwitchCount}
-                      </div>
-                      {tabSwitchCount > 0 && (
-                        <div className="text-xs text-white/60 mt-1">
-                          Persistent across refreshes
-                        </div>
-                      )}
+                  {/* Resources Tab */}
+                  {sidebarTab === "resources" && (
+                    <div className="animate-fadeIn">
+                      <PdfSection
+                        test={test}
+                        onOpenModal={() => setShowPdfModal(true)}
+                      />
                     </div>
-
-                    {testBlocked && (
-                      <div className="glass-stat-warning border-2 border-red-400/50">
-                        <div className="text-white/80">Status</div>
-                        <div className="text-lg font-bold text-red-300">
-                          BLOCKED
-                        </div>
-                        <div className="text-xs text-red-300/80 mt-1">
-                          Due to security violations
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* PDF Section */}
-              <div className="mt-6 pt-6 border-t border-white/20">
-                <PdfSection
-                  test={test}
-                  onOpenModal={() => setShowPdfModal(true)}
-                />
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -760,27 +818,40 @@ export default function TakeTest({
           onClose={() => setShowPdfModal(false)}
         />
       )}
+
+      {/* Add CSS for the line pattern background */}
+      <style jsx>{`
+        .bg-quiz-background {
+          background-color: #f8fafc;
+          background-image: linear-gradient(#0697b2 1px, transparent 1px),
+            linear-gradient(90deg, #0697b2 1px, transparent 1px);
+          background-size: 50px 50px;
+          background-position: center center;
+        }
+      `}</style>
     </div>
   );
 }
 
 // Supporting Components
 const LoadingScreen = () => (
-  <div className="min-h-screen bg-gradient-to-br from-blue-400/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
+  <div className="min-h-screen bg-quiz-background flex items-center justify-center">
     <div className="text-center">
-      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-      <p className="text-white text-lg font-light">Loading your test...</p>
+      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-quiz-primary mx-auto mb-4"></div>
+      <p className="text-quiz-dark text-lg font-light">Loading your test...</p>
     </div>
   </div>
 );
 
 const ErrorScreen = ({ message, onBack }) => (
-  <div className="min-h-screen bg-gradient-to-br from-blue-400/20 via-purple-500/20 to-pink-500/20 flex flex-col items-center justify-center p-4">
-    <div className="glass-card p-8 max-w-md text-center">
-      <AlertTriangle className="text-red-300 mx-auto mb-4" size={64} />
-      <h2 className="text-2xl font-bold text-white mb-4">Test Unavailable</h2>
-      <p className="text-white/80 mb-6 text-lg">{message}</p>
-      <button onClick={onBack} className="glass-button-primary">
+  <div className="min-h-screen bg-quiz-background flex flex-col items-center justify-center p-4">
+    <div className="quiz-card p-8 max-w-md text-center">
+      <AlertTriangle className="text-quiz-error mx-auto mb-4" size={64} />
+      <h2 className="text-2xl font-bold text-quiz-dark mb-4">
+        Test Unavailable
+      </h2>
+      <p className="text-quiz-dark/80 mb-6 text-lg">{message}</p>
+      <button onClick={onBack} className="quiz-button-primary">
         Return to Dashboard
       </button>
     </div>
