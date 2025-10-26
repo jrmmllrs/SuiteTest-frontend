@@ -36,7 +36,7 @@ function Sidebar({
         // Test Management Section
         { type: "section", label: "Test Management" },
         { id: "tests", icon: FileText, label: "Tests" },
-        { id: "question-bank", icon: Target, label: "Question Bank" },
+        { id: "question-bank", icon: Target, label: "Tests and Question Bank" },
         {
           id: "question-type-manager",
           icon: ListChecks,
@@ -65,7 +65,7 @@ function Sidebar({
         // Test Management Section
         { type: "section", label: "Test Management" },
         { id: "tests", icon: FileText, label: "Tests" },
-        { id: "question-bank", icon: Target, label: "Question Bank" },
+        { id: "question-bank", icon: Target, label: "Tests and Question Bank" },
 
         // Communication Section
         { type: "section", label: "Communication" },
@@ -225,7 +225,7 @@ export default function LayoutWrapper({
       "department-management": "Department Management",
       "admin-results": "All Results",
       "question-type-manager": "Question Types",
-      "question-bank": "Question Bank",
+      "question-bank": "Tests and Question Bank",
       "test-guide": "Test Guide",
     };
     return (

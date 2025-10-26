@@ -462,12 +462,16 @@ function TestsContent({ user, token, onNavigate }) {
           {/* Department Filter Bar */}
           {departmentStats.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              <DepartmentBadge
-                department="All Departments"
-                isSelected={selectedDepartment === "all"}
-                onClick={() => setSelectedDepartment("all")}
-                testCount={filteredTests.length}
-              />
+              {/* Hide "All Departments" for candidate & employer */}
+              {user?.role !== "candidate" && user?.role !== "employer" && (
+                <DepartmentBadge
+                  department="All Departments"
+                  isSelected={selectedDepartment === "all"}
+                  onClick={() => setSelectedDepartment("all")}
+                  testCount={filteredTests.length}
+                />
+              )}
+
               {departmentStats.map((dept) => (
                 <DepartmentBadge
                   key={dept.name}
