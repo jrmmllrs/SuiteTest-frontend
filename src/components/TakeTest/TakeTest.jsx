@@ -574,6 +574,82 @@ export default function TakeTest({
             {/* Right: Question and Stats */}
             <div className="space-y-6">
               {/* Quick Stats Card */}
+
+              {/* Question Card */}
+              {currentQ && (
+                <div className="quiz-card quiz-question-card overflow-hidden">
+                  {/* Question Header */}
+                  <div className="bg-quiz-primary p-8 text-white quiz-question-header">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex gap-2">
+                        <span className="quiz-badge">
+                          Question {currentQuestionIndex + 1} of{" "}
+                          {totalQuestions}
+                        </span>
+                        {currentQ.points && (
+                          <span className="quiz-badge-points">
+                            {currentQ.points} pts
+                          </span>
+                        )}
+                      </div>
+                      {!isAnswered && (
+                        <span className="quiz-badge-required animate-pulse">
+                          Required
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Question Body */}
+                  <div className="p-8 quiz-question-body">
+                    <QuestionCard
+                      key={currentQ.id}
+                      question={currentQ}
+                      index={currentQuestionIndex}
+                      answer={answers[currentQ.id]}
+                      onAnswerChange={handleAnswerChange}
+                      questionTypes={questionTypes}
+                    />
+                  </div>
+
+                  {/* Navigation */}
+                  <div className="flex justify-between items-center p-8 border-t border-quiz-light/30 bg-quiz-light/10 quiz-navigation">
+                    <div className="text-sm">
+                      {isAnswered ? (
+                        <span className="text-quiz-success flex items-center gap-2 quiz-answer-status">
+                          <CheckCircle size={16} />
+                          Answered
+                        </span>
+                      ) : (
+                        <span className="text-quiz-error flex items-center gap-2 quiz-answer-status">
+                          <AlertTriangle size={16} />
+                          Answer required
+                        </span>
+                      )}
+                    </div>
+
+                    {!isLastQuestion ? (
+                      <button
+                        onClick={handleNextQuestion}
+                        disabled={!isAnswered || testBlocked}
+                        className="quiz-button-next"
+                      >
+                        {isAnswered ? "Next Question" : "Answer Required"}
+                        <ChevronRight size={20} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSubmit}
+                        disabled={submitting || testBlocked}
+                        className="quiz-button-submit"
+                      >
+                        {submitting ? "Submitting..." : "Submit Test"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="quiz-card p-6">
                 <div className="grid grid-cols-4 gap-4">
                   {/* Answered */}
@@ -684,81 +760,6 @@ export default function TakeTest({
                   </div>
                 )}
               </div>
-
-              {/* Question Card */}
-              {currentQ && (
-                <div className="quiz-card quiz-question-card overflow-hidden">
-                  {/* Question Header */}
-                  <div className="bg-quiz-primary p-8 text-white quiz-question-header">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex gap-2">
-                        <span className="quiz-badge">
-                          Question {currentQuestionIndex + 1} of{" "}
-                          {totalQuestions}
-                        </span>
-                        {currentQ.points && (
-                          <span className="quiz-badge-points">
-                            {currentQ.points} pts
-                          </span>
-                        )}
-                      </div>
-                      {!isAnswered && (
-                        <span className="quiz-badge-required animate-pulse">
-                          Required
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Question Body */}
-                  <div className="p-8 quiz-question-body">
-                    <QuestionCard
-                      key={currentQ.id}
-                      question={currentQ}
-                      index={currentQuestionIndex}
-                      answer={answers[currentQ.id]}
-                      onAnswerChange={handleAnswerChange}
-                      questionTypes={questionTypes}
-                    />
-                  </div>
-
-                  {/* Navigation */}
-                  <div className="flex justify-between items-center p-8 border-t border-quiz-light/30 bg-quiz-light/10 quiz-navigation">
-                    <div className="text-sm">
-                      {isAnswered ? (
-                        <span className="text-quiz-success flex items-center gap-2 quiz-answer-status">
-                          <CheckCircle size={16} />
-                          Answered
-                        </span>
-                      ) : (
-                        <span className="text-quiz-error flex items-center gap-2 quiz-answer-status">
-                          <AlertTriangle size={16} />
-                          Answer required
-                        </span>
-                      )}
-                    </div>
-
-                    {!isLastQuestion ? (
-                      <button
-                        onClick={handleNextQuestion}
-                        disabled={!isAnswered || testBlocked}
-                        className="quiz-button-next"
-                      >
-                        {isAnswered ? "Next Question" : "Answer Required"}
-                        <ChevronRight size={20} />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleSubmit}
-                        disabled={submitting || testBlocked}
-                        className="quiz-button-submit"
-                      >
-                        {submitting ? "Submitting..." : "Submit Test"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         ) : (
