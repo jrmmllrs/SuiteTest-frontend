@@ -482,7 +482,7 @@ export default function TakeTest({
   return (
     <div className="min-h-screen bg-quiz-background">
       {/* Header */}
-      <nav className="bg-quiz-primary shadow-quiz border-b-4 border-quiz-accent">
+      <nav className="bg-quiz-primary shadow-quiz border-b-4 border-[#0697b2] border-quiz-accent">
         <div className="max-w-full mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             {proctoringSettings?.enable_proctoring && (

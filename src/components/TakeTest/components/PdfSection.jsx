@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText } from "lucide-react";
 
 export function PdfSection({ test, onOpenModal }) {
   if (test?.test_type !== "pdf_based" || !test?.google_drive_id) {
@@ -7,57 +7,62 @@ export function PdfSection({ test, onOpenModal }) {
   }
 
   return (
-    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div
+      className="border rounded-xl p-6 mb-6 shadow-sm"
+      style={{
+        background: "linear-gradient(135deg, #e0f7fa 0%, #e3f2fd 100%)",
+        borderColor: "#80deea",
+      }}
+    >
+      <div className="flex items-start justify-between gap-4 mb-5">
         <div className="flex-1">
-          <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-            <FileText size={20} />
+          <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+            <div
+              className="p-1.5 rounded-lg"
+              style={{ backgroundColor: "#b2ebf2" }}
+            >
+              <FileText size={18} style={{ color: "#0697b2" }} />
+            </div>
             Reference Document
           </h3>
-          <p className="text-sm text-blue-700 mb-3">
-            Review this document before answering the questions below.
+          <p className="text-sm text-gray-600 mb-4">
+            Review this document carefully before answering the questions below.
           </p>
 
-          <div className="flex gap-2">
-            <a
-              href={`https://drive.google.com/file/d/${test.google_drive_id}/view`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium flex items-center gap-2"
-            >
-              <ExternalLink size={16} />
-              Open PDF in New Tab
-            </a>
-
-            <button
-              onClick={onOpenModal}
-              className="px-4 py-2 bg-white text-blue-600 border border-blue-600 rounded hover:bg-blue-50 text-sm font-medium"
-            >
-              View in Modal
-            </button>
-          </div>
+          <button
+            onClick={onOpenModal}
+            className="px-5 py-2.5 text-white rounded-lg text-sm font-medium transition-all shadow-sm hover:shadow-md"
+            style={{
+              background: "linear-gradient(135deg, #0697b2 0%, #0582a0 100%)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(135deg, #0582a0 0%, #046d88 100%)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background =
+                "linear-gradient(135deg, #0697b2 0%, #0582a0 100%)";
+            }}
+          >
+            View Full Document
+          </button>
         </div>
 
         {test.thumbnail_url && (
           <img
             src={test.thumbnail_url}
             alt="PDF Thumbnail"
-            className="w-24 h-24 object-cover rounded border border-blue-200"
+            className="w-24 h-24 object-cover rounded-lg shadow-sm"
+            style={{
+              borderColor: "#80deea",
+              borderWidth: "1px",
+              borderStyle: "solid",
+            }}
             onError={(e) => {
               e.target.style.display = "none";
             }}
           />
         )}
-      </div>
-
-      {/* Embedded PDF Preview */}
-      <div className="border-2 border-blue-300 rounded-lg overflow-hidden bg-white">
-        <iframe
-          src={`https://drive.google.com/file/d/${test.google_drive_id}/preview`}
-          className="w-full h-96"
-          allow="autoplay"
-          title="Test Reference Document"
-        />
       </div>
     </div>
   );

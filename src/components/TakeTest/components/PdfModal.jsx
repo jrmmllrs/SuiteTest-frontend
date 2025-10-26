@@ -1,42 +1,84 @@
 import React from "react";
-import { FileText } from "lucide-react";
+import { FileText, X } from "lucide-react";
 
 export function PdfModal({ googleDriveId, onClose }) {
   if (!googleDriveId) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg w-full max-w-6xl h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <FileText size={20} />
-            Reference Document
-          </h3>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ backgroundColor: "rgba(6, 151, 178, 0.2)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden"
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "16px",
+          boxShadow:
+            "0 20px 60px rgba(6, 151, 178, 0.3), 0 0 0 1px rgba(6, 151, 178, 0.2)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-6 py-4"
+          style={{
+            background: "linear-gradient(135deg, #0697b2 0%, #0582a0 100%)",
+            borderTopLeftRadius: "16px",
+            borderTopRightRadius: "16px",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+            >
+              <FileText size={20} style={{ color: "#ffffff" }} />
+            </div>
+            <h3 className="font-semibold text-white text-lg">
+              Reference Document
+            </h3>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 p-1"
+            className="p-2 rounded-lg transition-all"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              color: "#ffffff",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor =
+                "rgba(255, 255, 255, 0.25)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor =
+                "rgba(255, 255, 255, 0.1)";
+            }}
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X size={20} />
           </button>
         </div>
-        <div className="flex-1 overflow-hidden">
+
+        {/* PDF Content */}
+        <div
+          className="flex-1 overflow-hidden"
+          style={{
+            backgroundColor: "#ffffff",
+            borderBottomLeftRadius: "16px",
+            borderBottomRightRadius: "16px",
+          }}
+        >
           <iframe
             src={`https://drive.google.com/file/d/${googleDriveId}/preview`}
             className="w-full h-full"
             allow="autoplay"
             title="Test Reference Document - Full View"
+            style={{
+              borderBottomLeftRadius: "16px",
+              borderBottomRightRadius: "16px",
+              border: "none",
+            }}
           />
         </div>
       </div>
