@@ -548,7 +548,7 @@ export default function TakeTest({
             {/* Left: PDF Viewer */}
             <div className="h-[calc(100vh-12rem)] sticky top-24">
               <div className="quiz-card h-full overflow-hidden flex flex-col">
-                <div className="bg-gradient-to-br from-quiz-primary to-quiz-accent p-4 text-white flex items-center justify-between">
+                <div className="bg-[#0697b2] p-4 text-white flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <BookOpen size={20} />
                     <span className="font-bold">Reference Material</span>
@@ -676,6 +676,7 @@ export default function TakeTest({
                     </div>
                   </div>
                 )}
+                <br />
                 {testBlocked && (
                   <div className="bg-red-50 border border-red-300 text-red-700 text-sm rounded-md p-3 flex items-center gap-2">
                     <Lock size={14} />
