@@ -9,6 +9,8 @@ import {
   Flag,
   Monitor,
   Lock,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { API_BASE_URL } from "../../constants";
 import { useTimer } from "../../hooks/useTimer";
@@ -46,7 +48,8 @@ export default function TakeTest({
   const [initialTime, setInitialTime] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState(new Set());
-  const [sidebarTab, setSidebarTab] = useState("stats"); // 'stats' or 'resources'
+  const [sidebarTab, setSidebarTab] = useState("stats");
+  const [pdfLayout, setPdfLayout] = useState("sidebar"); // 'sidebar' or 'split'
 
   // Refs
   const answersRef = useRef({});
@@ -85,7 +88,6 @@ export default function TakeTest({
     }
   };
 
-  // ADD THE MISSING FUNCTION
   const verifyInvitationAccess = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/invitations/verify-access`, {
@@ -242,7 +244,6 @@ export default function TakeTest({
       });
       const data = await res.json();
       if (data.success) {
-        // Reset proctoring data when test is successfully submitted
         resetProctoringData();
 
         if (document.fullscreenElement) document.exitFullscreen();
@@ -392,6 +393,15 @@ export default function TakeTest({
     };
   }, [saveProgressSync]);
 
+  // Auto-switch to split view if PDF exists, compact view if no PDF
+  useEffect(() => {
+    if (test?.google_drive_id) {
+      setPdfLayout("split");
+    } else {
+      setPdfLayout("sidebar");
+    }
+  }, [test?.google_drive_id]);
+
   // Event handlers
   const handleAnswerChange = (qid, val) => {
     setAnswers((prev) => ({ ...prev, [qid]: val }));
@@ -467,12 +477,13 @@ export default function TakeTest({
   const totalQuestions = test?.questions?.length || 0;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
   const isAnswered = isCurrentQuestionAnswered();
+  const hasPdf = test?.google_drive_id;
 
   return (
     <div className="min-h-screen bg-quiz-background">
       {/* Header */}
       <nav className="bg-quiz-primary shadow-quiz border-b-4 border-quiz-accent">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="max-w-full mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             {proctoringSettings?.enable_proctoring && (
               <div className="quiz-proctored-badge">
@@ -480,15 +491,35 @@ export default function TakeTest({
                 <span>Proctored</span>
               </div>
             )}
+            {hasPdf && (
+              <button
+                onClick={() =>
+                  setPdfLayout(pdfLayout === "split" ? "sidebar" : "split")
+                }
+                className="quiz-button-toggle"
+              >
+                {pdfLayout === "split" ? (
+                  <>
+                    <Minimize2 size={18} />
+                    <span>Compact View</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 size={18} />
+                    <span>Split View</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </nav>
 
-      <div className="py-8 px-6 max-w-7xl mx-auto">
+      <div className="py-8 px-6 max-w-full mx-auto">
         {/* Messages */}
         {message.text && !submitted && (
           <div
-            className={`quiz-message ${
+            className={`quiz-message max-w-7xl mx-auto mb-6 ${
               message.type === "success"
                 ? "quiz-message-success"
                 : "quiz-message-error"
@@ -505,100 +536,311 @@ export default function TakeTest({
 
         {/* Proctoring Warnings */}
         {fullscreenWarning && (
-          <div className="quiz-warning">
+          <div className="quiz-warning max-w-7xl mx-auto mb-6">
             <Monitor size={20} />
             <span>Please return to fullscreen mode to continue</span>
           </div>
         )}
 
-        {testBlocked && (
-          <div className="quiz-error">
-            <Lock size={20} />
-            <span>Test blocked due to security violations</span>
-          </div>
-        )}
+        {/* Test Content - Split or Sidebar Layout */}
+        {hasPdf && pdfLayout === "split" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-full">
+            {/* Left: PDF Viewer */}
+            <div className="h-[calc(100vh-12rem)] sticky top-24">
+              <div className="quiz-card h-full overflow-hidden flex flex-col">
+                <div className="bg-gradient-to-br from-quiz-primary to-quiz-accent p-4 text-white flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <BookOpen size={20} />
+                    <span className="font-bold">Reference Material</span>
+                  </div>
+                  <button
+                    onClick={() => setShowPdfModal(true)}
+                    className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm font-medium transition-colors"
+                  >
+                    Fullscreen
+                  </button>
+                </div>
+                <div className="flex-1 overflow-hidden bg-gray-100">
+                  <iframe
+                    src={`https://drive.google.com/file/d/${test.google_drive_id}/preview`}
+                    className="w-full h-full"
+                    title="Test Reference Material"
+                    allow="autoplay"
+                  />
+                </div>
+              </div>
+            </div>
 
-        {/* Test Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Main Question Area */}
-          <div className="xl:col-span-3">
-            {currentQ && (
-              <div className="quiz-card quiz-question-card overflow-hidden">
-                {/* Question Header */}
-                <div className="bg-quiz-primary p-8 text-white quiz-question-header">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex gap-2">
-                      <span className="quiz-badge">
-                        Question {currentQuestionIndex + 1} of {totalQuestions}
-                      </span>
-                      {currentQ.points && (
-                        <span className="quiz-badge-points">
-                          {currentQ.points} pts
+            {/* Right: Question and Stats */}
+            <div className="space-y-6">
+              {/* Quick Stats Card */}
+              <div className="quiz-card p-6">
+                <div className="grid grid-cols-4 gap-4">
+                  {/* Answered */}
+                  <div className="quiz-stat">
+                    <div className="flex items-center justify-center w-10 h-10 bg-quiz-primary/10 rounded-full mb-2 mx-auto">
+                      <CheckCircle size={20} className="text-quiz-primary" />
+                    </div>
+                    <div className="text-2xl font-black text-quiz-accent">
+                      {answeredQuestions.size}
+                    </div>
+                    <div className="text-xs text-quiz-dark/70 font-medium">
+                      Answered
+                    </div>
+                  </div>
+
+                  {/* Remaining */}
+                  <div className="quiz-stat">
+                    <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full mb-2 mx-auto">
+                      <AlertTriangle size={20} className="text-orange-500" />
+                    </div>
+                    <div className="text-2xl font-black text-orange-500">
+                      {totalQuestions - answeredQuestions.size}
+                    </div>
+                    <div className="text-xs text-quiz-dark/70 font-medium">
+                      Remaining
+                    </div>
+                  </div>
+
+                  {/* Total */}
+                  <div className="quiz-stat">
+                    <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full mb-2 mx-auto">
+                      <Flag size={20} className="text-purple-500" />
+                    </div>
+                    <div className="text-2xl font-black text-purple-500">
+                      {totalQuestions}
+                    </div>
+                    <div className="text-xs text-quiz-dark/70 font-medium">
+                      Total
+                    </div>
+                  </div>
+
+                  {/* Time */}
+                  <div className="quiz-stat">
+                    <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full mb-2 mx-auto">
+                      <Clock size={20} className="text-red-500 animate-pulse" />
+                    </div>
+                    <div className="text-lg font-black text-red-500 tabular-nums">
+                      {formatTime(timeLeft || 0)}
+                    </div>
+                    <div className="text-xs text-quiz-dark/70 font-medium">
+                      Time Left
+                    </div>
+                  </div>
+                </div>
+
+                {/* Proctoring Stats */}
+                {proctoringSettings?.enable_proctoring && (
+                  <div className="mt-4 pt-4 border-t border-quiz-light/30">
+                    <div className="flex items-center gap-2 text-quiz-dark/80 font-semibold text-sm mb-3">
+                      <Shield size={16} className="text-quiz-primary" />
+                      <span>Security Monitoring</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div
+                        className={`quiz-stat ${
+                          violationCount > 0 ? "border-2 border-yellow-400" : ""
+                        }`}
+                      >
+                        <div className="text-xs text-quiz-dark/70 font-medium mb-1">
+                          Violations
+                        </div>
+                        <div
+                          className={`text-xl font-black ${
+                            violationCount > 0
+                              ? "text-yellow-600"
+                              : "text-quiz-accent"
+                          }`}
+                        >
+                          {violationCount}
+                        </div>
+                      </div>
+                      <div
+                        className={`quiz-stat ${
+                          tabSwitchCount > 0 ? "border-2 border-yellow-400" : ""
+                        }`}
+                      >
+                        <div className="text-xs text-quiz-dark/70 font-medium mb-1">
+                          Tab Switches
+                        </div>
+                        <div
+                          className={`text-xl font-black ${
+                            tabSwitchCount > 0
+                              ? "text-yellow-600"
+                              : "text-quiz-accent"
+                          }`}
+                        >
+                          {tabSwitchCount}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {testBlocked && (
+                  <div className="bg-red-50 border border-red-300 text-red-700 text-sm rounded-md p-3 flex items-center gap-2">
+                    <Lock size={14} />
+                    <span>Test blocked due to security violations</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Question Card */}
+              {currentQ && (
+                <div className="quiz-card quiz-question-card overflow-hidden">
+                  {/* Question Header */}
+                  <div className="bg-quiz-primary p-8 text-white quiz-question-header">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex gap-2">
+                        <span className="quiz-badge">
+                          Question {currentQuestionIndex + 1} of{" "}
+                          {totalQuestions}
+                        </span>
+                        {currentQ.points && (
+                          <span className="quiz-badge-points">
+                            {currentQ.points} pts
+                          </span>
+                        )}
+                      </div>
+                      {!isAnswered && (
+                        <span className="quiz-badge-required animate-pulse">
+                          Required
                         </span>
                       )}
                     </div>
-                    {!isAnswered && (
-                      <span className="quiz-badge-required animate-pulse">
-                        Required
-                      </span>
-                    )}
                   </div>
-                </div>
 
-                {/* Question Body */}
-                <div className="p-8 quiz-question-body">
-                  <QuestionCard
-                    key={currentQ.id}
-                    question={currentQ}
-                    index={currentQuestionIndex}
-                    answer={answers[currentQ.id]}
-                    onAnswerChange={handleAnswerChange}
-                    questionTypes={questionTypes}
-                  />
-                </div>
+                  {/* Question Body */}
+                  <div className="p-8 quiz-question-body">
+                    <QuestionCard
+                      key={currentQ.id}
+                      question={currentQ}
+                      index={currentQuestionIndex}
+                      answer={answers[currentQ.id]}
+                      onAnswerChange={handleAnswerChange}
+                      questionTypes={questionTypes}
+                    />
+                  </div>
 
-                {/* Navigation */}
-                <div className="flex justify-between items-center p-8 border-t border-quiz-light/30 bg-quiz-light/10 quiz-navigation">
-                  <div className="text-sm">
-                    {isAnswered ? (
-                      <span className="text-quiz-success flex items-center gap-2 quiz-answer-status">
-                        <CheckCircle size={16} />
-                        Answered
-                      </span>
+                  {/* Navigation */}
+                  <div className="flex justify-between items-center p-8 border-t border-quiz-light/30 bg-quiz-light/10 quiz-navigation">
+                    <div className="text-sm">
+                      {isAnswered ? (
+                        <span className="text-quiz-success flex items-center gap-2 quiz-answer-status">
+                          <CheckCircle size={16} />
+                          Answered
+                        </span>
+                      ) : (
+                        <span className="text-quiz-error flex items-center gap-2 quiz-answer-status">
+                          <AlertTriangle size={16} />
+                          Answer required
+                        </span>
+                      )}
+                    </div>
+
+                    {!isLastQuestion ? (
+                      <button
+                        onClick={handleNextQuestion}
+                        disabled={!isAnswered || testBlocked}
+                        className="quiz-button-next"
+                      >
+                        {isAnswered ? "Next Question" : "Answer Required"}
+                        <ChevronRight size={20} />
+                      </button>
                     ) : (
-                      <span className="text-quiz-error flex items-center gap-2 quiz-answer-status">
-                        <AlertTriangle size={16} />
-                        Answer required
-                      </span>
+                      <button
+                        onClick={handleSubmit}
+                        disabled={submitting || testBlocked}
+                        className="quiz-button-submit"
+                      >
+                        {submitting ? "Submitting..." : "Submit Test"}
+                      </button>
                     )}
                   </div>
-
-                  {!isLastQuestion ? (
-                    <button
-                      onClick={handleNextQuestion}
-                      disabled={!isAnswered || testBlocked}
-                      className="quiz-button-next"
-                    >
-                      {isAnswered ? "Next Question" : "Answer Required"}
-                      <ChevronRight size={20} />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleSubmit}
-                      disabled={submitting || testBlocked}
-                      className="quiz-button-submit"
-                    >
-                      {submitting ? "Submitting..." : "Submit Test"}
-                    </button>
-                  )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
+        ) : (
+          // Original Sidebar Layout
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {/* Main Question Area */}
+            <div className="xl:col-span-3">
+              {currentQ && (
+                <div className="quiz-card quiz-question-card overflow-hidden">
+                  {/* Question Header */}
+                  <div className="bg-quiz-primary p-8 text-white quiz-question-header">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex gap-2">
+                        <span className="quiz-badge">
+                          Question {currentQuestionIndex + 1} of{" "}
+                          {totalQuestions}
+                        </span>
+                        {currentQ.points && (
+                          <span className="quiz-badge-points">
+                            {currentQ.points} pts
+                          </span>
+                        )}
+                      </div>
+                      {!isAnswered && (
+                        <span className="quiz-badge-required animate-pulse">
+                          Required
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-          {/* Sidebar */}
-          <div className="xl:col-span-1">
-            {/* Sidebar with Tabs */}
+                  {/* Question Body */}
+                  <div className="p-8 quiz-question-body">
+                    <QuestionCard
+                      key={currentQ.id}
+                      question={currentQ}
+                      index={currentQuestionIndex}
+                      answer={answers[currentQ.id]}
+                      onAnswerChange={handleAnswerChange}
+                      questionTypes={questionTypes}
+                    />
+                  </div>
+
+                  {/* Navigation */}
+                  <div className="flex justify-between items-center p-8 border-t border-quiz-light/30 bg-quiz-light/10 quiz-navigation">
+                    <div className="text-sm">
+                      {isAnswered ? (
+                        <span className="text-quiz-success flex items-center gap-2 quiz-answer-status">
+                          <CheckCircle size={16} />
+                          Answered
+                        </span>
+                      ) : (
+                        <span className="text-quiz-error flex items-center gap-2 quiz-answer-status">
+                          <AlertTriangle size={16} />
+                          Answer required
+                        </span>
+                      )}
+                    </div>
+
+                    {!isLastQuestion ? (
+                      <button
+                        onClick={handleNextQuestion}
+                        disabled={!isAnswered || testBlocked}
+                        className="quiz-button-next"
+                      >
+                        {isAnswered ? "Next Question" : "Answer Required"}
+                        <ChevronRight size={20} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSubmit}
+                        disabled={submitting || testBlocked}
+                        className="quiz-button-submit"
+                      >
+                        {submitting ? "Submitting..." : "Submit Test"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
             <div className="xl:col-span-1">
               <div className="quiz-card quiz-sidebar overflow-hidden sticky top-8">
                 {/* Tab Headers */}
@@ -808,7 +1050,7 @@ export default function TakeTest({
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* PDF Modal */}
