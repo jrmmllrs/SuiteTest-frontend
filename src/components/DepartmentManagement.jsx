@@ -11,6 +11,8 @@ import {
   X,
   CheckCircle,
   XCircle,
+  MoreVertical,
+  Sparkles,
 } from "lucide-react";
 import LayoutWrapper from "./layout/LayoutWrapper";
 
@@ -37,6 +39,7 @@ function DepartmentManagement({
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [hoveredCard, setHoveredCard] = useState(null);
 
   useEffect(() => {
     fetchDepartments();
@@ -167,9 +170,7 @@ function DepartmentManagement({
   };
 
   const filteredDepartments = departments
-    // hide Question Bank
     .filter((dept) => dept.department_name.toLowerCase() !== "question bank")
-    // apply search filter
     .filter((dept) => {
       const searchLower = searchQuery.toLowerCase();
       return (
@@ -178,6 +179,20 @@ function DepartmentManagement({
           dept.description.toLowerCase().includes(searchLower))
       );
     });
+
+  // Teal color scheme gradients
+  const cardGradients = [
+    "from-teal-50 to-cyan-50 border-teal-200",
+    "from-blue-50 to-teal-50 border-blue-200",
+    "from-cyan-50 to-sky-50 border-cyan-200",
+    "from-sky-50 to-blue-50 border-sky-200",
+    "from-teal-50 to-emerald-50 border-teal-200",
+    "from-cyan-50 to-teal-50 border-cyan-200",
+  ];
+
+  const getCardGradient = (index) => {
+    return cardGradients[index % cardGradients.length];
+  };
 
   return (
     <LayoutWrapper
@@ -189,196 +204,226 @@ function DepartmentManagement({
       setActiveTab={setActiveTab}
     >
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-            <Building2 size={22} className="text-white" />
+      {/* <div className="mb-8">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="relative">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0495b5] to-[#027a96] flex items-center justify-center shadow-lg shadow-[#0495b5]/30">
+              <Building2 size={24} className="text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full flex items-center justify-center shadow-sm">
+              <Sparkles size={10} className="text-white" />
+            </div>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#0495b5] to-[#027a96] bg-clip-text text-transparent">
               Department Management
             </h1>
-            <p className="text-sm text-gray-600">
-              Manage departments for organizing users and tests
+            <p className="text-gray-600 font-medium">
+              Organize users and tests with structured departments
             </p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Success/Error Messages */}
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-          <CheckCircle size={20} className="text-green-600" />
-          <p className="text-green-800 font-medium">{success}</p>
+        <div className="mb-6 p-4 bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-2xl flex items-center gap-3 shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+            <CheckCircle size={16} className="text-teal-600" />
+          </div>
+          <p className="text-teal-800 font-medium">{success}</p>
         </div>
       )}
 
       {error && !showModal && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-          <XCircle size={20} className="text-red-600" />
+        <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-2xl flex items-center gap-3 shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+            <XCircle size={16} className="text-red-600" />
+          </div>
           <p className="text-red-800 font-medium">{error}</p>
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-300 group hover:border-[#0495b5]/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Departments</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 mb-2">Total Departments</p>
+              <p className="text-4xl font-bold text-gray-900 group-hover:text-[#0495b5] transition-colors">
                 {departments.length}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-              <Building2 size={22} className="text-white" />
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#0495b5] to-[#027a96] flex items-center justify-center shadow-lg shadow-[#0495b5]/30 group-hover:scale-110 transition-transform">
+              <Building2 size={24} className="text-white" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-300 group hover:border-emerald-400/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Active</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 mb-2">Active</p>
+              <p className="text-4xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">
                 {departments.filter((d) => d.is_active).length}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-              <CheckCircle size={22} className="text-white" />
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+              <CheckCircle size={24} className="text-white" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-300 group hover:border-gray-400/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Inactive</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 mb-2">Inactive</p>
+              <p className="text-4xl font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
                 {departments.filter((d) => !d.is_active).length}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-              <XCircle size={22} className="text-white" />
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center shadow-lg shadow-gray-400/30 group-hover:scale-110 transition-transform">
+              <XCircle size={24} className="text-white" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
         {/* Toolbar */}
-        <div className="p-5 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="p-6 border-b border-gray-200 bg-white/50 backdrop-blur-sm">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <div className="relative flex-1">
               <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={18}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
               />
               <input
                 type="text"
-                placeholder="Search departments..."
+                placeholder="Search departments by name or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0495b5]/20 focus:border-[#0495b5] transition-all duration-200 shadow-sm"
               />
             </div>
             <button
               onClick={() => handleOpenModal()}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+              className="flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-[#0495b5] to-[#027a96] hover:from-[#0384a1] hover:to-[#026880] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-[#0495b5]/25 hover:shadow-xl hover:shadow-[#0495b5]/30 transform hover:-translate-y-0.5"
             >
-              <Plus size={18} />
+              <Plus size={20} />
               Add Department
             </button>
           </div>
         </div>
 
-        {/* Departments List */}
-        <div className="p-5">
+        {/* Departments Grid */}
+        <div className="p-6">
           {loading ? (
-            <div className="text-center py-16">
-              <div className="inline-block w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-gray-600 font-medium">
+            <div className="text-center py-20">
+              <div className="inline-block w-16 h-16 border-4 border-[#0495b5]/20 border-t-[#0495b5] rounded-full animate-spin mb-5" />
+              <p className="text-gray-600 font-medium text-lg">
                 Loading departments...
               </p>
+              <p className="text-gray-400 text-sm mt-2">Please wait a moment</p>
             </div>
           ) : filteredDepartments.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                <Building2 size={40} className="text-gray-300" />
+            <div className="text-center py-20">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-teal-50 to-cyan-50 flex items-center justify-center shadow-inner border border-teal-100">
+                <Building2 size={48} className="text-[#0495b5]" />
               </div>
-              <p className="text-gray-900 font-semibold text-lg mb-2">
-                No departments found
+              <p className="text-gray-900 font-semibold text-xl mb-3">
+                {searchQuery ? "No departments found" : "No departments yet"}
               </p>
-              <p className="text-gray-600 text-sm mb-4">
+              <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
                 {searchQuery
-                  ? "Try adjusting your search terms"
-                  : "Get started by creating your first department"}
+                  ? "Try adjusting your search terms or create a new department"
+                  : "Start by creating your first department to organize users and tests efficiently"}
               </p>
               {!searchQuery && (
                 <button
                   onClick={() => handleOpenModal()}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#0495b5] to-[#027a96] hover:from-[#0384a1] hover:to-[#026880] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-[#0495b5]/25 hover:shadow-xl hover:shadow-[#0495b5]/30 transform hover:-translate-y-0.5"
                 >
-                  <Plus size={18} />
-                  Add Department
+                  <Plus size={20} />
+                  Create First Department
                 </button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredDepartments.map((dept) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredDepartments.map((dept, index) => (
                 <div
                   key={dept.id}
-                  className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
+                  className={`relative bg-gradient-to-br ${getCardGradient(index)} border rounded-2xl p-6 transition-all duration-300 transform hover:-translate-y-2 shadow-sm hover:shadow-xl cursor-pointer ${
+                    hoveredCard === dept.id ? 'scale-[1.02]' : ''
+                  }`}
+                  onMouseEnter={() => setHoveredCard(dept.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {dept.department_name}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            dept.is_active
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {dept.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-                    </div>
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    <span
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
+                        dept.is_active
+                          ? "bg-emerald-500/20 text-emerald-700 border border-emerald-500/30"
+                          : "bg-gray-500/20 text-gray-600 border border-gray-500/30"
+                      }`}
+                    >
+                      {dept.is_active ? "Active" : "Inactive"}
+                    </span>
                   </div>
 
+                  {/* Department Icon */}
+                  <div className="w-14 h-14 rounded-xl bg-white/70 backdrop-blur-sm border border-white/50 flex items-center justify-center shadow-sm mb-4">
+                    <Building2 size={24} className="text-[#0495b5]" />
+                  </div>
+
+                  {/* Department Info */}
+                  <h3 className="font-bold text-gray-900 text-lg mb-2 pr-16">
+                    {dept.department_name}
+                  </h3>
+
                   {dept.description && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                    <p className="text-gray-600 text-sm mb-6 line-clamp-2 leading-relaxed">
                       {dept.description}
                     </p>
                   )}
 
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Users size={16} />
-                      <span>{dept.user_count || 0} users</span>
+                  {/* Stats */}
+                  <div className="flex items-center gap-6 text-sm text-gray-500 mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-white/70 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                        <Users size={14} className="text-[#0495b5]" />
+                      </div>
+                      <span className="font-semibold text-gray-700">{dept.user_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <FileText size={16} />
-                      <span>{dept.test_count || 0} tests</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-white/70 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                        <FileText size={14} className="text-[#0495b5]" />
+                      </div>
+                      <span className="font-semibold text-gray-700">{dept.test_count || 0}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  {/* Actions */}
+                  <div className="flex items-center gap-3">
                     <button
-                      onClick={() => handleOpenModal(dept)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium rounded-lg transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenModal(dept);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/80 hover:bg-white text-gray-700 font-medium rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-white/50 backdrop-blur-sm hover:text-[#0495b5]"
                     >
                       <Edit2 size={16} />
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(dept.id)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-medium rounded-lg transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(dept.id);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/80 hover:bg-white text-red-600 font-medium rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-white/50 backdrop-blur-sm"
                     >
                       <Trash2 size={16} />
                       Delete
@@ -393,32 +438,39 @@ function DepartmentManagement({
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform animate-in fade-in-90 zoom-in-95">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-teal-50 to-cyan-50">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
-                  {editingDept ? "Edit Department" : "Add New Department"}
-                </h2>
+                <div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-[#0495b5] to-[#027a96] bg-clip-text text-transparent">
+                    {editingDept ? "Edit Department" : "Create Department"}
+                  </h2>
+                  <p className="text-gray-600 text-sm mt-1">
+                    {editingDept ? "Update department details" : "Add a new department to your organization"}
+                  </p>
+                </div>
                 <button
                   onClick={handleCloseModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-all duration-200 hover:scale-110"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-                  <XCircle size={18} className="text-red-600" />
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <XCircle size={16} className="text-red-600" />
+                  </div>
+                  <p className="text-red-800 font-medium text-sm">{error}</p>
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
                   Department Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -430,14 +482,14 @@ function DepartmentManagement({
                       department_name: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="e.g., Engineering, Marketing"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0495b5]/20 focus:border-[#0495b5] transition-all duration-200 shadow-sm"
+                  placeholder="e.g., Engineering, Marketing, Sales"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
                   Description
                 </label>
                 <textarea
@@ -445,13 +497,13 @@ function DepartmentManagement({
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  placeholder="Brief description of the department..."
+                  rows={4}
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0495b5]/20 focus:border-[#0495b5] transition-all duration-200 shadow-sm resize-none"
+                  placeholder="Brief description of the department's purpose and responsibilities..."
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 p-4 bg-teal-50 rounded-2xl border border-teal-100">
                 <input
                   type="checkbox"
                   id="is_active"
@@ -459,27 +511,30 @@ function DepartmentManagement({
                   onChange={(e) =>
                     setFormData({ ...formData, is_active: e.target.checked })
                   }
-                  className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  className="w-5 h-5 text-[#0495b5] border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0495b5]/20"
                 />
                 <label
                   htmlFor="is_active"
-                  className="text-sm font-medium text-gray-700"
+                  className="text-sm font-semibold text-gray-700 cursor-pointer"
                 >
                   Active Department
                 </label>
+                <span className="text-xs text-gray-500 ml-auto">
+                  {formData.is_active ? "Visible to users" : "Hidden from users"}
+                </span>
               </div>
 
-              <div className="flex items-center gap-3 pt-4">
+              <div className="flex items-center gap-4 pt-4">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                  className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 shadow-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-[#0495b5] to-[#027a96] hover:from-[#0384a1] hover:to-[#026880] text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-[#0495b5]/25"
                 >
                   <Save size={18} />
                   {editingDept ? "Update" : "Create"}
