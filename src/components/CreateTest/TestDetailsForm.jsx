@@ -16,7 +16,9 @@ export default function TestDetailsForm({
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">Test Details</h2>
-        <p className="text-sm text-gray-600 mt-1">Configure the basic settings for your assessment</p>
+        <p className="text-sm text-gray-600 mt-1">
+          Configure the basic settings for your assessment
+        </p>
       </div>
 
       <div className="p-6 space-y-6">
@@ -108,8 +110,23 @@ export default function TestDetailsForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0697b2] focus:border-transparent"
             >
               <option value="">Select a department</option>
+
+              {/* Regular Departments */}
               {departments
                 .filter((dept) => dept.department_name !== "Question Bank")
+                .map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.department_name}
+                  </option>
+                ))}
+
+              {/* Separator */}
+              <option disabled>──────────</option>
+              <option disabled>Others</option>
+
+              {/* Question Bank */}
+              {departments
+                .filter((dept) => dept.department_name === "Question Bank")
                 .map((dept) => (
                   <option key={dept.id} value={dept.id}>
                     {dept.department_name}
@@ -150,8 +167,12 @@ export default function TestDetailsForm({
                   <div className="flex items-center gap-3">
                     <FileText size={20} className="text-[#0697b2]" />
                     <div>
-                      <p className="font-medium text-sm text-gray-900">PDF Attached</p>
-                      <p className="text-xs text-gray-500">ID: {testData.google_drive_id}</p>
+                      <p className="font-medium text-sm text-gray-900">
+                        PDF Attached
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        ID: {testData.google_drive_id}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-1">
