@@ -213,6 +213,43 @@ export default function TakeTest({
     }
   };
 
+  // FIXED: Handle test start - this sets start_time in database
+  const handleStartTest = async () => {
+    try {
+      // Create initial progress record to set start_time
+      const response = await fetch(
+        `${API_BASE_URL}/tests/${testId}/save-progress`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            answers: {}, // Start with empty answers
+            time_remaining: test.time_limit * 60, // Full time limit
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        console.log(
+          "Test started successfully - start_time should be set in database"
+        );
+        setShowInstructions(false);
+      } else {
+        console.error("Failed to start test:", data.message);
+        // Still continue to test even if save fails
+        setShowInstructions(false);
+      }
+    } catch (error) {
+      console.error("Error starting test:", error);
+      // Still continue to test even if save fails
+      setShowInstructions(false);
+    }
+  };
+
   const handleSubmit = useCallback(async () => {
     if (submitting || !test) return;
 
@@ -445,13 +482,13 @@ export default function TakeTest({
     }
   };
 
-  // Render states
+  // FIXED: Use handleStartTest instead of directly setting showInstructions
   if (showInstructions && !loading && test && proctoringSettings) {
     return (
       <TestInstructionsScreen
         test={test}
         proctoringSettings={proctoringSettings}
-        onStartTest={() => setShowInstructions(false)}
+        onStartTest={handleStartTest} // ✅ This sets start_time in database
         onBack={onBack}
       />
     );

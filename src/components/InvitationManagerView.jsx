@@ -1,10 +1,9 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
-import InvitationsManager from "./InvitationsManager";
+import AllInvitationsView from "../components/Dashboard/AllInvitationsView";
 import LayoutWrapper from "./layout/LayoutWrapper";
 
 export default function InvitationsManagerView({
-  testId,
   token,
   user,
   onBack,
@@ -34,7 +33,7 @@ export default function InvitationsManagerView({
       </div>
 
       {/* Invitations Manager */}
-      <InvitationsManager testId={testId} token={token} />
+      <AllInvitationsView user={user} token={token} onNavigate={onNavigate} />
     </LayoutWrapper>
   );
 }

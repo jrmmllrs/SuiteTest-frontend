@@ -1,9 +1,9 @@
 // File: src/components/dashboard/AllInvitationsView.jsx
 import React, { useState, useEffect } from "react";
-import { 
-  Mail, 
-  Plus, 
-  Search, 
+import {
+  Mail,
+  Plus,
+  Search,
   Filter,
   Send,
   Trash2,
@@ -24,7 +24,7 @@ import InviteModal from "./InviteModal";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function AllInvitationsView({ user, token, onNavigate }) {
+export default function AllInvitationsView({ token, onNavigate }) {
   const [tests, setTests] = useState([]);
   const [allInvitations, setAllInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,40 +47,44 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const testsData = await testsResponse.json();
-      
+
       if (testsData.success && testsData.tests) {
         setTests(testsData.tests);
-        
+
         // Fetch invitations for all tests
-        const invitationsPromises = testsData.tests.map(test =>
+        const invitationsPromises = testsData.tests.map((test) =>
           fetch(`${API_BASE_URL}/invitations/test/${test.id}/invitations`, {
             headers: { Authorization: `Bearer ${token}` },
           })
-          .then(res => res.json())
-          .then(data => ({
-            testId: test.id,
-            testTitle: test.title,
-            invitations: data.success ? data.invitations : []
-          }))
-          .catch(() => ({ testId: test.id, testTitle: test.title, invitations: [] }))
+            .then((res) => res.json())
+            .then((data) => ({
+              testId: test.id,
+              testTitle: test.title,
+              invitations: data.success ? data.invitations : [],
+            }))
+            .catch(() => ({
+              testId: test.id,
+              testTitle: test.title,
+              invitations: [],
+            }))
         );
-        
+
         const invitationsData = await Promise.all(invitationsPromises);
-        
+
         // Flatten invitations with test info
-        const flatInvitations = invitationsData.flatMap(item =>
-          item.invitations.map(inv => ({
+        const flatInvitations = invitationsData.flatMap((item) =>
+          item.invitations.map((inv) => ({
             ...inv,
             test_id: item.testId,
             test_title: item.testTitle,
           }))
         );
-        
+
         setAllInvitations(flatInvitations);
-        
+
         // Auto-expand tests that have invitations
         const testsWithInvitations = new Set(
-          flatInvitations.map(inv => inv.test_id)
+          flatInvitations.map((inv) => inv.test_id)
         );
         setExpandedTests(testsWithInvitations);
       }
@@ -127,7 +131,9 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
       );
       const data = await response.json();
       if (data.success) {
-        setAllInvitations(prev => prev.filter(inv => inv.id !== invitationId));
+        setAllInvitations((prev) =>
+          prev.filter((inv) => inv.id !== invitationId)
+        );
         alert("Invitation cancelled");
       } else {
         alert("Failed to cancel invitation: " + data.message);
@@ -139,7 +145,7 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
   };
 
   const toggleTestExpanded = (testId) => {
-    setExpandedTests(prev => {
+    setExpandedTests((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(testId)) {
         newSet.delete(testId);
@@ -192,36 +198,40 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
   };
 
   // Filter invitations
-  const filteredInvitations = allInvitations.filter(inv => {
-    const matchesSearch = 
+  const filteredInvitations = allInvitations.filter((inv) => {
+    const matchesSearch =
       inv.candidate_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.candidate_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.test_title?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
   // Group by test
-  const invitationsByTest = tests.map(test => ({
-    test,
-    invitations: filteredInvitations.filter(inv => inv.test_id === test.id)
-  })).filter(item => item.invitations.length > 0);
+  const invitationsByTest = tests
+    .map((test) => ({
+      test,
+      invitations: filteredInvitations.filter((inv) => inv.test_id === test.id),
+    }))
+    .filter((item) => item.invitations.length > 0);
 
   // Calculate stats
   const stats = {
     total: allInvitations.length,
-    pending: allInvitations.filter(i => i.status === "pending").length,
-    accepted: allInvitations.filter(i => i.status === "accepted").length,
-    completed: allInvitations.filter(i => i.status === "completed").length,
+    pending: allInvitations.filter((i) => i.status === "pending").length,
+    accepted: allInvitations.filter((i) => i.status === "accepted").length,
+    completed: allInvitations.filter((i) => i.status === "completed").length,
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="inline-block w-16 h-16 border-4 border-[#0495b5]/20 border-t-[#0495b5] rounded-full animate-spin mb-5" />
-        <p className="text-gray-600 font-medium text-lg">Loading invitations...</p>
+        <p className="text-gray-600 font-medium text-lg">
+          Loading invitations...
+        </p>
         <p className="text-gray-400 text-sm mt-2">Please wait a moment</p>
       </div>
     );
@@ -254,32 +264,14 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      {/* <div className="flex items-center gap-4 mb-2">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0495b5] to-[#027a96] flex items-center justify-center shadow-lg shadow-[#0495b5]/30">
-            <Mail size={24} className="text-white" />
-          </div>
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full flex items-center justify-center shadow-sm">
-            <Sparkles size={10} className="text-white" />
-          </div>
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#0495b5] to-[#027a96] bg-clip-text text-transparent">
-            All Invitations
-          </h1>
-          <p className="text-gray-600 font-medium">
-            Manage invitations across all your tests
-          </p>
-        </div>
-      </div> */}
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-300 group hover:border-[#0495b5]/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 mb-2">Total Invitations</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">
+                Total Invitations
+              </p>
               <p className="text-4xl font-bold text-gray-900 group-hover:text-[#0495b5] transition-colors">
                 {stats.total}
               </p>
@@ -321,7 +313,9 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
         <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-300 group hover:border-emerald-400/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 mb-2">Completed</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">
+                Completed
+              </p>
               <p className="text-4xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">
                 {stats.completed}
               </p>
@@ -337,7 +331,10 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
       <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl border border-gray-200 p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search by candidate name, email, or test..."
@@ -346,9 +343,12 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
               className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0495b5]/20 focus:border-[#0495b5] transition-all duration-200"
             />
           </div>
-          
+
           <div className="relative">
-            <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Filter
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -379,10 +379,12 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
             <Mail className="text-[#0495b5]" size={48} />
           </div>
           <p className="text-gray-900 font-semibold text-xl mb-3">
-            {searchQuery || statusFilter !== "all" ? "No invitations found" : "No invitations sent yet"}
+            {searchQuery || statusFilter !== "all"
+              ? "No invitations found"
+              : "No invitations sent yet"}
           </p>
           <p className="text-gray-600 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-            {searchQuery || statusFilter !== "all" 
+            {searchQuery || statusFilter !== "all"
               ? "Try adjusting your filters or search terms"
               : "Send invitations to candidates from your test cards"}
           </p>
@@ -396,11 +398,14 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
       ) : (
         <div className="space-y-4">
           {invitationsByTest.map(({ test, invitations }) => (
-            <div key={test.id} className="bg-gradient-to-br from-white to-gray-50 rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-              {/* Test Header - Collapsible */}
-              <button
+            <div
+              key={test.id}
+              className="bg-gradient-to-br from-white to-gray-50 rounded-3xl border border-gray-200 shadow-sm overflow-hidden"
+            >
+              {/* Test Header - Collapsible - FIXED: Removed nested button */}
+              <div
                 onClick={() => toggleTestExpanded(test.id)}
-                className="w-full p-6 flex items-center justify-between hover:bg-gray-50/50 transition-all duration-200 border-b border-gray-200"
+                className="w-full p-6 flex items-center justify-between hover:bg-gray-50/50 transition-all duration-200 border-b border-gray-200 cursor-pointer"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0495b5] to-[#027a96] flex items-center justify-center shadow-lg shadow-[#0495b5]/30">
@@ -411,10 +416,13 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
                     )}
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg font-bold text-gray-900">{test.title}</h3>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {test.title}
+                    </h3>
                     <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-2">
                       <Users size={14} />
-                      {invitations.length} invitation{invitations.length !== 1 ? 's' : ''}
+                      {invitations.length} invitation
+                      {invitations.length !== 1 ? "s" : ""}
                     </p>
                   </div>
                 </div>
@@ -428,7 +436,7 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
                   <Mail size={18} />
                   Send Invitation
                 </button>
-              </button>
+              </div>
 
               {/* Invitations Table - Collapsible */}
               {expandedTests.has(test.id) && (
@@ -437,21 +445,31 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
                     <table className="w-full">
                       <thead className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Candidate</th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Invited</th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Expires</th>
-                          <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Candidate
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Invited
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Expires
+                          </th>
+                          <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {invitations.map((invitation) => (
-                          <tr 
-                            key={invitation.id} 
+                          <tr
+                            key={invitation.id}
                             className={`transition-all duration-200 ${
-                              hoveredRow === invitation.id 
-                                ? 'bg-gradient-to-r from-teal-50/50 to-cyan-50/50 transform scale-[1.01] shadow-sm' 
-                                : 'hover:bg-gray-50/50'
+                              hoveredRow === invitation.id
+                                ? "bg-gradient-to-r from-teal-50/50 to-cyan-50/50 transform scale-[1.01] shadow-sm"
+                                : "hover:bg-gray-50/50"
                             }`}
                             onMouseEnter={() => setHoveredRow(invitation.id)}
                             onMouseLeave={() => setHoveredRow(null)}
@@ -460,40 +478,58 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
                               <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#0495b5] to-[#027a96] flex items-center justify-center shadow-lg shadow-[#0495b5]/30">
                                   <span className="text-white font-bold text-sm">
-                                    {invitation.candidate_name?.charAt(0)?.toUpperCase() || 'U'}
+                                    {invitation.candidate_name
+                                      ?.charAt(0)
+                                      ?.toUpperCase() || "U"}
                                   </span>
                                 </div>
                                 <div>
-                                  <p className="font-semibold text-gray-900 text-sm">{invitation.candidate_name}</p>
-                                  <p className="text-xs text-gray-600">{invitation.candidate_email}</p>
+                                  <p className="font-semibold text-gray-900 text-sm">
+                                    {invitation.candidate_name}
+                                  </p>
+                                  <p className="text-xs text-gray-600">
+                                    {invitation.candidate_email}
+                                  </p>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 {getStatusIcon(invitation.status)}
-                                <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${getStatusColor(invitation.status)}`}>
-                                  {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
+                                <span
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${getStatusColor(
+                                    invitation.status
+                                  )}`}
+                                >
+                                  {invitation.status.charAt(0).toUpperCase() +
+                                    invitation.status.slice(1)}
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Calendar size={14} className="text-[#0495b5]" />
-                                {new Date(invitation.invited_at).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
+                                <Calendar
+                                  size={14}
+                                  className="text-[#0495b5]"
+                                />
+                                {new Date(
+                                  invitation.invited_at
+                                ).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
                                 })}
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Clock size={14} className="text-[#0495b5]" />
-                                {new Date(invitation.expires_at).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
+                                {new Date(
+                                  invitation.expires_at
+                                ).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
                                 })}
                               </div>
                             </td>
@@ -511,7 +547,9 @@ export default function AllInvitationsView({ user, token, onNavigate }) {
                                 )}
                                 {invitation.status !== "completed" && (
                                   <button
-                                    onClick={() => deleteInvitation(invitation.id)}
+                                    onClick={() =>
+                                      deleteInvitation(invitation.id)
+                                    }
                                     className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-red-700 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl hover:from-red-100 hover:to-rose-100 transition-all duration-200 border border-red-200 hover:border-red-300 hover:shadow-sm"
                                     title="Cancel Invitation"
                                   >

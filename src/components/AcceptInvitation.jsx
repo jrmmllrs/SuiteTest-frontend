@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 // ✅ FIXED: Move API_BASE_URL outside component for consistency
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function InvitationAccept({ token, onNavigate, onLogin }) {
   const [loading, setLoading] = useState(true);
@@ -23,8 +24,9 @@ export default function InvitationAccept({ token, onNavigate, onLogin }) {
     try {
       // ✅ FIXED: Removed duplicate /api
       const response = await fetch(
-        `${API_BASE_URL}/invitations/accept/${token}`
+        `${API_BASE_URL}/api/invitations/accept/${token}`
       );
+
       const data = await response.json();
 
       if (data.success) {
