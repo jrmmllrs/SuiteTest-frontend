@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Lock, User, Briefcase, Building2 } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 export default function Auth({ onAuthSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -24,33 +24,32 @@ export default function Auth({ onAuthSuccess }) {
     }
   }, [isLogin]);
 
-const fetchDepartments = async () => {
-  setLoadingDepartments(true);
-  try {
-    const response = await fetch(`${API_BASE_URL}/users/departments`);
-    const data = await response.json();
+  const fetchDepartments = async () => {
+    setLoadingDepartments(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/departments`);
+      const data = await response.json();
 
-    if (data.success) {
-      // 🔒 Hide "Question Bank" or any internal departments
-      const filteredDepartments = (data.departments || []).filter(
-        (dept) =>
-          dept.department_name.toLowerCase() !== "question bank" &&
-          dept.department_name.toLowerCase() !== "admin" // optional
-      );
+      if (data.success) {
+        // 🔒 Hide "Question Bank" or any internal departments
+        const filteredDepartments = (data.departments || []).filter(
+          (dept) =>
+            dept.department_name.toLowerCase() !== "question bank" &&
+            dept.department_name.toLowerCase() !== "admin" // optional
+        );
 
-      setDepartments(filteredDepartments);
-    } else {
-      console.error("Failed to fetch departments:", data.message);
-      setError("Failed to load departments. Please refresh the page.");
+        setDepartments(filteredDepartments);
+      } else {
+        console.error("Failed to fetch departments:", data.message);
+        setError("Failed to load departments. Please refresh the page.");
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      setError("Failed to load departments. Please check your connection.");
+    } finally {
+      setLoadingDepartments(false);
     }
-  } catch (error) {
-    console.error("Error fetching departments:", error);
-    setError("Failed to load departments. Please check your connection.");
-  } finally {
-    setLoadingDepartments(false);
-  }
-};
-
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -238,7 +237,6 @@ const fetchDepartments = async () => {
                         className="w-full pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent appearance-none bg-white transition-all duration-300 hover:border-cyan-300"
                       >
                         <option value="candidate">Candidate</option>
-                        <option value="admin">admin</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                         <svg
