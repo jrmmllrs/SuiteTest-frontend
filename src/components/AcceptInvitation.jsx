@@ -19,24 +19,42 @@ export default function InvitationAccept({ token, onNavigate, onLogin }) {
     acceptInvitation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
-
+  
   const acceptInvitation = async () => {
     try {
-      // ✅ FIXED: Removed duplicate /api
+      if (!token) {
+        setError("Invalid invitation token");
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/accept?token=${token}`
+        `${API_BASE_URL}/api/invitations/accept/${token}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
+
+      // Check if response is OK
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
 
       if (data.success) {
         setInvitation(data.invitation);
       } else {
-        setError(data.message);
+        setError(data.message || "Invalid invitation");
       }
     } catch (err) {
       console.error("Error accepting invitation:", err);
-      setError("Failed to load invitation");
+      setError(
+        err.message || "Failed to load invitation. Please check the link."
+      );
     } finally {
       setLoading(false);
     }
