@@ -24,7 +24,7 @@ export default function InvitationAccept({ token, onNavigate, onLogin }) {
     try {
       // ✅ FIXED: Removed duplicate /api
       const response = await fetch(
-        `${API_BASE_URL}/api/invitations/accept/${token}`
+        `${API_BASE_URL}/api/invitations/accept?token=${token}`
       );
 
       const data = await response.json();
